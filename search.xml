@@ -1,6 +1,284 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>面经-C++11新标准</title>
+    <url>/2023/07/15/C++11%E6%96%B0%E6%A0%87%E5%87%86/</url>
+    <content><![CDATA[<h1 id="C-11新标准"><a href="#C-11新标准" class="headerlink" title="C++11新标准"></a>C++11新标准</h1><h2 id="1、C-11有哪些新特性？"><a href="#1、C-11有哪些新特性？" class="headerlink" title="1、C++ 11有哪些新特性？"></a>1、C++ 11有哪些新特性？</h2><ul>
+<li><p>nullptr替代 NULL</p>
+</li>
+<li><p>引入了 auto 和 decltype 这两个关键字实现了类型推导</p>
+</li>
+<li><p>基于范围的 for 循环for(auto&amp; i : res){}</p>
+</li>
+<li><p>类和结构体的中初始化列表</p>
+</li>
+<li><p>Lambda 表达式（匿名函数）</p>
+</li>
+<li><p>std::forward_list（单向链表）</p>
+</li>
+<li><p>右值引用和move语义</p>
+</li>
+<li><p>…</p>
+</li>
+</ul>
+<h2 id="2、auto、decltype和decltype-auto-的用法"><a href="#2、auto、decltype和decltype-auto-的用法" class="headerlink" title="2、auto、decltype和decltype(auto)的用法"></a>2、auto、decltype和decltype(auto)的用法</h2><p><strong>（1）auto</strong></p>
+<p>C++11新标准引入了auto类型说明符，用它就能让编译器替我们去分析表达式所属的类型。和原来那些只对应某种特定的类型说明符(例如 int)不同，</p>
+<p><strong>auto 让编译器通过初始值来进行类型推演。从而获得定义变量的类型，所以说 auto 定义的变量必须有初始值。</strong></p>
+<p>举个例子：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">//普通；类型</span></span><br><span class="line"><span class="type">int</span> a = <span class="number">1</span>, b = <span class="number">3</span>;</span><br><span class="line"><span class="keyword">auto</span> c = a + b;<span class="comment">// c为int型</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//const类型</span></span><br><span class="line"><span class="type">const</span> <span class="type">int</span> i = <span class="number">5</span>;</span><br><span class="line"><span class="keyword">auto</span> j = i; <span class="comment">// 变量i是顶层const, 会被忽略, 所以j的类型是int</span></span><br><span class="line"><span class="keyword">auto</span> k = &amp;i; <span class="comment">// 变量i是一个常量, 对常量取地址是一种底层const, 所以k的类型是const int*</span></span><br><span class="line"><span class="type">const</span> <span class="keyword">auto</span> l = i; <span class="comment">//如果希望推断出的类型是顶层const的, 那么就需要在auto前面加上cosnt</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//引用和指针类型</span></span><br><span class="line"><span class="type">int</span> x = <span class="number">2</span>;</span><br><span class="line"><span class="type">int</span>&amp; y = x;</span><br><span class="line"><span class="keyword">auto</span> z = y; <span class="comment">//z是int型不是int&amp; 型</span></span><br><span class="line"><span class="keyword">auto</span>&amp; p1 = y; <span class="comment">//p1是int&amp;型</span></span><br><span class="line"><span class="keyword">auto</span> p2 = &amp;x; <span class="comment">//p2是指针类型int*</span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<p><strong>（2）decltype</strong></p>
+<p>有的时候我们还会遇到这种情况，<strong>我们希望从表达式中推断出要定义变量的类型，但却不想用表达式的值去初始化变量。</strong>还有可能是函数的返回类型为某表达式的值类型。在这些时候auto显得就无力了，所以C++11又引入了第二种类型说明符decltype，<strong>它的作用是选择并返回操作数的数据类型。在此过程中，编译器只是分析表达式并得到它的类型，却不进行实际的计算表达式的值。</strong></p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">func</span><span class="params">()</span> </span>&#123;<span class="keyword">return</span> <span class="number">0</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">//普通类型</span></span><br><span class="line"><span class="keyword">decltype</span>(<span class="built_in">func</span>()) sum = <span class="number">5</span>; <span class="comment">// sum的类型是函数func()的返回值的类型int, 但是这时不会实际调用函数func()</span></span><br><span class="line"><span class="type">int</span> a = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">decltype</span>(a) b = <span class="number">4</span>; <span class="comment">// a的类型是int, 所以b的类型也是int</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//不论是顶层const还是底层const, decltype都会保留   </span></span><br><span class="line"><span class="type">const</span> <span class="type">int</span> c = <span class="number">3</span>;</span><br><span class="line"><span class="keyword">decltype</span>(c) d = c; <span class="comment">// d的类型和c是一样的, 都是顶层const</span></span><br><span class="line"><span class="type">int</span> e = <span class="number">4</span>;</span><br><span class="line"><span class="type">const</span> <span class="type">int</span>* f = &amp;e; <span class="comment">// f是底层const</span></span><br><span class="line"><span class="keyword">decltype</span>(f) g = f; <span class="comment">// g也是底层const</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//引用与指针类型</span></span><br><span class="line"><span class="comment">//1. 如果表达式是引用类型, 那么decltype的类型也是引用</span></span><br><span class="line"><span class="type">const</span> <span class="type">int</span> i = <span class="number">3</span>, &amp;j = i;</span><br><span class="line"><span class="keyword">decltype</span>(j) k = <span class="number">5</span>; <span class="comment">// k的类型是 const int&amp;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//2. 如果表达式是引用类型, 但是想要得到这个引用所指向的类型, 需要修改表达式:</span></span><br><span class="line"><span class="type">int</span> i = <span class="number">3</span>, &amp;r = i;</span><br><span class="line"><span class="keyword">decltype</span>(r + <span class="number">0</span>) t = <span class="number">5</span>; <span class="comment">// 此时是int类型</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//3. 对指针的解引用操作返回的是引用类型</span></span><br><span class="line"><span class="type">int</span> i = <span class="number">3</span>, j = <span class="number">6</span>, *p = &amp;i;</span><br><span class="line"><span class="keyword">decltype</span>(*p) c = j; <span class="comment">// c是int&amp;类型, c和j绑定在一起</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//4. 如果一个表达式的类型不是引用, 但是我们需要推断出引用, 那么可以加上一对括号, 就变成了引用类型了</span></span><br><span class="line"><span class="type">int</span> i = <span class="number">3</span>;</span><br><span class="line"><span class="keyword">decltype</span>((i)) j = i; <span class="comment">// 此时j的类型是int&amp;类型, j和i绑定在了一起</span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<p><strong>（3）decltype(auto)</strong></p>
+<p>decltype(auto)是C++14新增的类型指示符，可以用来声明变量以及指示函数返回类型。在使用时，会将“&#x3D;”号右边的表达式替换掉auto，再根据decltype的语法规则来确定类型。举个例子：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> e = <span class="number">4</span>;</span><br><span class="line"><span class="type">const</span> <span class="type">int</span>* f = &amp;e; <span class="comment">// f是底层const</span></span><br><span class="line"><span class="keyword">decltype</span>(<span class="keyword">auto</span>) j = f;<span class="comment">//j的类型是const int* 并且指向的是e</span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="3、C-中NULL和nullptr区别"><a href="#3、C-中NULL和nullptr区别" class="headerlink" title="3、C++中NULL和nullptr区别"></a>3、C++中NULL和nullptr区别</h2><p>算是为了与C语言进行兼容而定义的一个问题吧</p>
+<p>NULL来自C语言，一般由宏定义实现，而 nullptr 则是C++11的新增关键字。</p>
+<p>在C语言中，NULL被定义为(void*)0,而在C++语言中，NULL则被定义为整数0。编译器一般对其实际定义如下：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifdef</span> __cplusplus</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> NULL 0</span></span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> NULL ((void *)0)</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<p>在C++中指针必须有明确的类型定义。但是将NULL定义为0带来的另一个问题是无法与整数的0区分。因为C++中允许有函数重载，所以可以试想如下函数定义情况：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">fun</span><span class="params">(<span class="type">char</span>* p)</span> </span>&#123;</span><br><span class="line">	cout &lt;&lt; <span class="string">&quot;char*&quot;</span> &lt;&lt; endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">fun</span><span class="params">(<span class="type">int</span> p)</span> </span>&#123;</span><br><span class="line">	cout &lt;&lt; <span class="string">&quot;int&quot;</span> &lt;&lt; endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">fun</span>(<span class="literal">NULL</span>);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//输出结果：int</span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<p>那么<strong>在传入NULL参数时，会把NULL当做整数0来看，如果我们想调用参数是指针的函数，该怎么办呢?。nullptr在C++11被引入用于解决这一问题，nullptr可以明确区分整型和指针类型，能够根据环境自动转换成相应的指针类型，但不会被转换为任何整型，所以不会造成参数传递错误。</strong></p>
+<p>nullptr的一种实现方式如下：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="type">const</span> <span class="keyword">class</span> <span class="title class_">nullptr_t</span>&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="keyword">template</span>&lt;<span class="keyword">class</span> <span class="title class_">T</span>&gt;  <span class="keyword">inline</span> <span class="keyword">operator</span> T*() <span class="type">const</span>&#123; <span class="keyword">return</span> <span class="number">0</span>; &#125;</span><br><span class="line">    <span class="keyword">template</span>&lt;<span class="keyword">class</span> <span class="title class_">C</span>, <span class="keyword">class</span> <span class="title class_">T</span>&gt; <span class="keyword">inline</span> <span class="keyword">operator</span> T C::*() <span class="type">const</span> &#123; <span class="keyword">return</span> <span class="number">0</span>; &#125;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="type">void</span> <span class="keyword">operator</span>&amp;() <span class="type">const</span>;</span><br><span class="line">&#125; <span class="literal">nullptr</span> = &#123;&#125;;</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<p>以上通过模板类和运算符重载的方式来对不同类型的指针进行实例化从而解决了(void*)指针带来参数类型不明的问题，<strong>另外由于nullptr是明确的指针类型，所以不会与整形变量相混淆。</strong>但nullptr仍然存在一定问题，例如：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">fun</span><span class="params">(<span class="type">char</span>* p)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	cout&lt;&lt; <span class="string">&quot;char* p&quot;</span> &lt;&lt;endl;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">fun</span><span class="params">(<span class="type">int</span>* p)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	cout&lt;&lt; <span class="string">&quot;int* p&quot;</span> &lt;&lt;endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">fun</span><span class="params">(<span class="type">int</span> p)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	cout&lt;&lt; <span class="string">&quot;int p&quot;</span> &lt;&lt;endl;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">fun</span>((<span class="type">char</span>*)<span class="literal">nullptr</span>);<span class="comment">//语句1</span></span><br><span class="line">	<span class="built_in">fun</span>(<span class="literal">nullptr</span>);<span class="comment">//语句2</span></span><br><span class="line">    <span class="built_in">fun</span>(<span class="literal">NULL</span>);<span class="comment">//语句3</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//运行结果：</span></span><br><span class="line"><span class="comment">//语句1：char* p</span></span><br><span class="line"><span class="comment">//语句2:报错，有多个匹配</span></span><br><span class="line"><span class="comment">//3：int p</span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<p>在这种情况下存在对不同指针类型的函数重载，此时如果传入nullptr指针则仍然存在无法区分应实际调用哪个函数，这种情况下必须显示的指明参数类型。</p>
+<h2 id="4、智能指针的原理、常用的智能指针及实现"><a href="#4、智能指针的原理、常用的智能指针及实现" class="headerlink" title="4、智能指针的原理、常用的智能指针及实现"></a>4、智能指针的原理、常用的智能指针及实现</h2><p><strong>原理</strong></p>
+<p>智能指针是一个类，用来存储指向动态分配对象的指针，负责自动释放动态分配的对象，防止堆内存泄漏。动态分配的资源，交给一个类对象去管理，当类对象声明周期结束时，自动调用析构函数释放资源</p>
+<p><strong>常用的智能指针</strong></p>
+<p><strong>(1) shared_ptr</strong></p>
+<p>实现原理：采用引用计数器的方法，允许多个智能指针指向同一个对象，每当多一个指针指向该对象时，指向该对象的所有智能指针内部的引用计数加1，每当减少一个智能指针指向对象时，引用计数会减1，当计数为0的时候会自动的释放动态分配的资源。</p>
+<ul>
+<li>智能指针将一个计数器与类指向的对象相关联，引用计数器跟踪共有多少个类对象共享同一指针</li>
+<li>每次创建类的新对象时，初始化指针并将引用计数置为1</li>
+<li>当对象作为另一对象的副本而创建时，拷贝构造函数拷贝指针并增加与之相应的引用计数</li>
+<li>对一个对象进行赋值时，赋值操作符减少左操作数所指对象的引用计数（如果引用计数为减至0，则删除对象），并增加右操作数所指对象的引用计数</li>
+<li>调用析构函数时，构造函数减少引用计数（如果引用计数减至0，则删除基础对象）</li>
+</ul>
+<p><strong>(2) unique_ptr</strong></p>
+<p>unique_ptr采用的是独享所有权语义，一个非空的unique_ptr总是拥有它所指向的资源。转移一个unique_ptr将会把所有权全部从源指针转移给目标指针，源指针被置空；所以unique_ptr不支持普通的拷贝和赋值操作，不能用在STL标准容器中；局部变量的返回值除外（因为编译器知道要返回的对象将要被销毁）；如果你拷贝一个unique_ptr，那么拷贝结束后，这两个unique_ptr都会指向相同的资源，造成在结束时对同一内存指针多次释放而导致程序崩溃。</p>
+<p><strong>(3) weak_ptr</strong></p>
+<p>weak_ptr：弱引用。 引用计数有一个问题就是互相引用形成环（环形引用），这样两个指针指向的内存都无法释放。需要使用weak_ptr打破环形引用。weak_ptr是一个弱引用，它是为了配合shared_ptr而引入的一种智能指针，它指向一个由shared_ptr管理的对象而不影响所指对象的生命周期，也就是说，它只引用，不计数。如果一块内存被shared_ptr和weak_ptr同时引用，当所有shared_ptr析构了之后，不管还有没有weak_ptr引用该内存，内存也会被释放。所以weak_ptr不保证它指向的内存一定是有效的，在使用之前使用函数lock()检查weak_ptr是否为空指针。</p>
+<p><strong>(4) auto_ptr</strong></p>
+<p>主要是为了解决“有异常抛出时发生内存泄漏”的问题 。因为发生异常而无法正常释放内存。</p>
+<p>auto_ptr有拷贝语义，拷贝后源对象变得无效，这可能引发很严重的问题；而unique_ptr则无拷贝语义，但提供了移动语义，这样的错误不再可能发生，因为很明显必须使用std::move()进行转移。</p>
+<p>auto_ptr不支持拷贝和赋值操作，不能用在STL标准容器中。STL容器中的元素经常要支持拷贝、赋值操作，在这过程中auto_ptr会传递所有权，所以不能在STL中使用。</p>
+<p><strong>智能指针shared_ptr代码实现：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">SharedPtr</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="built_in">SharedPtr</span>(T* ptr = <span class="literal">NULL</span>):_ptr(ptr), _pcount(<span class="keyword">new</span> <span class="built_in">int</span>(<span class="number">1</span>))</span><br><span class="line">	&#123;&#125;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">SharedPtr</span>(<span class="type">const</span> SharedPtr&amp; s):_ptr(s._ptr), _pcount(s._pcount)&#123;</span><br><span class="line">		(*_pcount)++;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	SharedPtr&lt;T&gt;&amp; <span class="keyword">operator</span>=(<span class="type">const</span> SharedPtr&amp; s)&#123;</span><br><span class="line">		<span class="keyword">if</span> (<span class="keyword">this</span> != &amp;s)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">if</span> (--(*(<span class="keyword">this</span>-&gt;_pcount)) == <span class="number">0</span>)</span><br><span class="line">			&#123;</span><br><span class="line">				<span class="keyword">delete</span> <span class="keyword">this</span>-&gt;_ptr;</span><br><span class="line">				<span class="keyword">delete</span> <span class="keyword">this</span>-&gt;_pcount;</span><br><span class="line">			&#125;</span><br><span class="line">			_ptr = s._ptr;</span><br><span class="line">			_pcount = s._pcount;</span><br><span class="line">			*(_pcount)++;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> *<span class="keyword">this</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	T&amp; <span class="keyword">operator</span>*()</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">return</span> *(<span class="keyword">this</span>-&gt;_ptr);</span><br><span class="line">	&#125;</span><br><span class="line">	T* <span class="keyword">operator</span>-&gt;()</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">this</span>-&gt;_ptr;</span><br><span class="line">	&#125;</span><br><span class="line">	~<span class="built_in">SharedPtr</span>()</span><br><span class="line">	&#123;</span><br><span class="line">		--(*(<span class="keyword">this</span>-&gt;_pcount));</span><br><span class="line">		<span class="keyword">if</span> (*(<span class="keyword">this</span>-&gt;_pcount) == <span class="number">0</span>)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">delete</span> _ptr;</span><br><span class="line">			_ptr = <span class="literal">NULL</span>;</span><br><span class="line">			<span class="keyword">delete</span> _pcount;</span><br><span class="line">			_pcount = <span class="literal">NULL</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">	T* _ptr;</span><br><span class="line">	<span class="type">int</span>* _pcount;<span class="comment">//指向引用计数的指针</span></span><br><span class="line">&#125;;</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="5、说一说你了解的关于lambda函数的全部知识"><a href="#5、说一说你了解的关于lambda函数的全部知识" class="headerlink" title="5、说一说你了解的关于lambda函数的全部知识"></a>5、说一说你了解的关于lambda函数的全部知识</h2><ol>
+<li><p>利用lambda表达式可以编写内嵌的匿名函数，用以替换独立函数或者函数对象；</p>
+</li>
+<li><p>每当你定义一个lambda表达式后，编译器会自动生成一个匿名类（这个类当然重载了()运算符），我们称为闭包类型（closure type）。那么在运行时，这个lambda表达式就会返回一个匿名的闭包实例，其实一个右值。所以，我们上面的lambda表达式的结果就是一个个闭包。闭包的一个强大之处是其可以通过传值或者引用的方式捕捉其封装作用域内的变量，前面的方括号就是用来定义捕捉模式以及变量，我们又将其称为lambda捕捉块。</p>
+</li>
+<li><p>lambda表达式的语法定义如下：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">[capture] （parameters） <span class="keyword">mutable</span> -&gt;<span class="keyword">return</span>-type &#123;statement&#125;;</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+</li>
+<li><p>lambda必须使用尾置返回来指定返回类型，可以忽略参数列表和返回值，但必须永远包含捕获列表和函数体；</p>
+</li>
+</ol>
+<h2 id="6、智能指针的作用"><a href="#6、智能指针的作用" class="headerlink" title="6、智能指针的作用"></a>6、智能指针的作用</h2><ol>
+<li>C++11中引入了智能指针的概念，方便管理堆内存。使用普通指针，容易造成堆内存泄露（忘记释放），二次释放，程序发生异常时内存泄露等问题等，使用智能指针能更好的管理堆内存。</li>
+<li>智能指针在C++11版本之后提供，包含在头文件<memory>中，shared_ptr、unique_ptr、weak_ptr。shared_ptr多个指针指向相同的对象。shared_ptr使用引用计数，每一个shared_ptr的拷贝都指向相同的内存。每使用他一次，内部的引用计数加1，每析构一次，内部的引用计数减1，减为0时，自动删除所指向的堆内存。shared_ptr内部的引用计数是线程安全的，但是对象的读取需要加锁。</li>
+<li>初始化。智能指针是个模板类，可以指定类型，传入指针通过构造函数初始化。也可以使用make_shared函数初始化。不能将指针直接赋值给一个智能指针，一个是类，一个是指针。例如std::shared_ptr<int> p4 &#x3D; new int(1);的写法是错误的</li>
+</ol>
+<p>拷贝和赋值。拷贝使得对象的引用计数增加1，赋值使得原对象引用计数减1，当计数为0时，自动释放内存。后来指向的对象引用计数加1，指向后来的对象</p>
+<ol>
+<li>unique_ptr“唯一”拥有其所指对象，同一时刻只能有一个unique_ptr指向给定对象（通过禁止拷贝语义、只有移动语义来实现）。相比与原始指针unique_ptr用于其RAII的特性，使得在出现异常的情况下，动态资源能得到释放。unique_ptr指针本身的生命周期：从unique_ptr指针创建时开始，直到离开作用域。离开作用域时，若其指向对象，则将其所指对象销毁(默认使用delete操作符，用户可指定其他操作)。unique_ptr指针与其所指对象的关系：在智能指针生命周期内，可以改变智能指针所指对象，如创建智能指针时通过构造函数指定、通过reset方法重新指定、通过release方法释放所有权、通过移动语义转移所有权。</li>
+<li>智能指针类将一个计数器与类指向的对象相关联，引用计数跟踪该类有多少个对象共享同一指针。每次创建类的新对象时，初始化指针并将引用计数置为1；当对象作为另一对象的副本而创建时，拷贝构造函数拷贝指针并增加与之相应的引用计数；对一个对象进行赋值时，赋值操作符减少左操作数所指对象的引用计数（如果引用计数为减至0，则删除对象），并增加右操作数所指对象的引用计数；调用析构函数时，构造函数减少引用计数（如果引用计数减至0，则删除基础对象）。</li>
+<li>weak_ptr 是一种不控制对象生命周期的智能指针, 它指向一个 shared_ptr 管理的对象. 进行该对象的内存管理的是那个强引用的 shared_ptr. weak_ptr只是提供了对管理对象的一个访问手段。weak_ptr 设计的目的是为配合 shared_ptr 而引入的一种智能指针来协助 shared_ptr 工作, 它只可以从一个 shared_ptr 或另一个 weak_ptr 对象构造, 它的构造和析构不会引起引用记数的增加或减少.</li>
+</ol>
+<h2 id="7、说说你了解的auto-ptr作用"><a href="#7、说说你了解的auto-ptr作用" class="headerlink" title="7、说说你了解的auto_ptr作用"></a>7、说说你了解的auto_ptr作用</h2><ol>
+<li>auto_ptr的出现，主要是为了解决“有异常抛出时发生内存泄漏”的问题；抛出异常，将导致指针p所指向的空间得不到释放而导致内存泄漏；</li>
+<li>auto_ptr构造时取得某个对象的控制权，在析构时释放该对象。我们实际上是创建一个auto_ptr<Type>类型的局部对象，该局部对象析构时，会将自身所拥有的指针空间释放，所以不会有内存泄漏；</li>
+<li>auto_ptr的构造函数是explicit，阻止了一般指针隐式转换为 auto_ptr的构造，所以不能直接将一般类型的指针赋值给auto_ptr类型的对象，必须用auto_ptr的构造函数创建对象；</li>
+<li>由于auto_ptr对象析构时会删除它所拥有的指针，所以使用时避免多个auto_ptr对象管理同一个指针；</li>
+<li>Auto_ptr内部实现，析构函数中删除对象用的是delete而不是delete[]，所以auto_ptr不能管理数组；</li>
+<li>auto_ptr支持所拥有的指针类型之间的隐式类型转换。</li>
+<li>可以通过*和-&gt;运算符对auto_ptr所有用的指针进行提领操作；</li>
+<li>T* get(),获得auto_ptr所拥有的指针；T* release()，释放auto_ptr的所有权，并将所有用的指针返回。</li>
+</ol>
+<h2 id="8、智能指针的循环引用"><a href="#8、智能指针的循环引用" class="headerlink" title="8、智能指针的循环引用"></a>8、智能指针的循环引用</h2><p>循环引用是指使用多个智能指针share_ptr时，出现了指针之间相互指向，从而形成环的情况，有点类似于死锁的情况，这种情况下，智能指针往往不能正常调用对象的析构函数，从而造成内存泄漏。举个例子：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Node</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="built_in">Node</span>(<span class="type">const</span> T&amp; value)</span><br><span class="line">		:_pPre(<span class="literal">NULL</span>)</span><br><span class="line">		, _pNext(<span class="literal">NULL</span>)</span><br><span class="line">		, _value(value)</span><br><span class="line">	&#123;</span><br><span class="line">		cout &lt;&lt; <span class="string">&quot;Node()&quot;</span> &lt;&lt; endl;</span><br><span class="line">	&#125;</span><br><span class="line">	~<span class="built_in">Node</span>()</span><br><span class="line">	&#123;</span><br><span class="line">		cout &lt;&lt; <span class="string">&quot;~Node()&quot;</span> &lt;&lt; endl;</span><br><span class="line">		cout &lt;&lt; <span class="string">&quot;this:&quot;</span> &lt;&lt; <span class="keyword">this</span> &lt;&lt; endl;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	shared_ptr&lt;Node&lt;T&gt;&gt; _pPre;</span><br><span class="line">	shared_ptr&lt;Node&lt;T&gt;&gt; _pNext;</span><br><span class="line">	T _value;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">Funtest</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	shared_ptr&lt;Node&lt;<span class="type">int</span>&gt;&gt; <span class="built_in">sp1</span>(<span class="keyword">new</span> <span class="built_in">Node</span>&lt;<span class="type">int</span>&gt;(<span class="number">1</span>));</span><br><span class="line">	shared_ptr&lt;Node&lt;<span class="type">int</span>&gt;&gt; <span class="built_in">sp2</span>(<span class="keyword">new</span> <span class="built_in">Node</span>&lt;<span class="type">int</span>&gt;(<span class="number">2</span>));</span><br><span class="line"></span><br><span class="line">	cout &lt;&lt; <span class="string">&quot;sp1.use_count:&quot;</span> &lt;&lt; sp1.<span class="built_in">use_count</span>() &lt;&lt; endl;</span><br><span class="line">	cout &lt;&lt; <span class="string">&quot;sp2.use_count:&quot;</span> &lt;&lt; sp2.<span class="built_in">use_count</span>() &lt;&lt; endl;</span><br><span class="line"></span><br><span class="line">	sp1-&gt;_pNext = sp2; <span class="comment">//sp2的引用+1</span></span><br><span class="line">	sp2-&gt;_pPre = sp1; <span class="comment">//sp1的引用+1</span></span><br><span class="line"></span><br><span class="line">	cout &lt;&lt; <span class="string">&quot;sp1.use_count:&quot;</span> &lt;&lt; sp1.<span class="built_in">use_count</span>() &lt;&lt; endl;</span><br><span class="line">	cout &lt;&lt; <span class="string">&quot;sp2.use_count:&quot;</span> &lt;&lt; sp2.<span class="built_in">use_count</span>() &lt;&lt; endl;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">Funtest</span>();</span><br><span class="line">	<span class="built_in">system</span>(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//输出结果</span></span><br><span class="line"><span class="comment">//Node()</span></span><br><span class="line"><span class="comment">//Node()</span></span><br><span class="line"><span class="comment">//sp1.use_count:1</span></span><br><span class="line"><span class="comment">//sp2.use_count:1</span></span><br><span class="line"><span class="comment">//sp1.use_count:2</span></span><br><span class="line"><span class="comment">//sp2.use_count:2</span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<p>从上面shared_ptr的实现中我们知道了只有当引用计数减减之后等于0，析构时才会释放对象，而上述情况造成了一个僵局，那就是析构对象时先析构sp2,可是由于sp2的空间sp1还在使用中，所以sp2.use_count减减之后为1，不释放，sp1也是相同的道理，由于sp1的空间sp2还在使用中，所以sp1.use_count减减之后为1，也不释放。sp1等着sp2先释放，sp2等着sp1先释放,二者互不相让，导致最终都没能释放，内存泄漏。</p>
+<p>在实际编程过程中，应该尽量避免出现智能指针之前相互指向的情况，如果不可避免，可以使用使用弱指针——weak_ptr，它不增加引用计数，只要出了作用域就会自动析构。</p>
+<h2 id="9、手写实现智能指针类需要实现哪些函数？"><a href="#9、手写实现智能指针类需要实现哪些函数？" class="headerlink" title="9、手写实现智能指针类需要实现哪些函数？"></a>9、手写实现智能指针类需要实现哪些函数？</h2><ol>
+<li><p>智能指针是一个数据类型，一般用模板实现，模拟指针行为的同时还提供自动垃圾回收机制。它会自动记录SmartPointer&lt;T*&gt;对象的引用计数，一旦T类型对象的引用计数为0，就释放该对象。</p>
+<p>除了指针对象外，我们还需要一个引用计数的指针设定对象的值，并将引用计数计为1，需要一个构造函数。新增对象还需要一个构造函数，析构函数负责引用计数减少和释放内存。</p>
+<p>通过覆写赋值运算符，才能将一个旧的智能指针赋值给另一个指针，同时旧的引用计数减1，新的引用计数加1</p>
+</li>
+<li><p>一个构造函数、拷贝构造函数、复制构造函数、析构函数、移动函数；</p>
+</li>
+</ol>
+<h2 id="10、智能指针出现循环引用怎么解决？"><a href="#10、智能指针出现循环引用怎么解决？" class="headerlink" title="10、智能指针出现循环引用怎么解决？"></a>10、智能指针出现循环引用怎么解决？</h2><p>弱指针用于专门解决shared_ptr循环引用的问题，weak_ptr不会修改引用计数，即其存在与否并不影响对象的引用计数器。循环引用就是：两个对象互相使用一个shared_ptr成员变量指向对方。弱引用并不对对象的内存进行管理，在功能上类似于普通指针，然而一个比较大的区别是，弱引用能检测到所管理的对象是否已经被释放，从而避免访问非法内存。</p>
+]]></content>
+      <categories>
+        <category>八股</category>
+      </categories>
+      <tags>
+        <tag>C++</tag>
+        <tag>C++11</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>面经-C++内存管理</title>
+    <url>/2023/07/15/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/</url>
+    <content><![CDATA[<h1 id="C-内存管理"><a href="#C-内存管理" class="headerlink" title="C++内存管理"></a>C++内存管理</h1><h2 id="1、类的对象存储空间？"><a href="#1、类的对象存储空间？" class="headerlink" title="1、类的对象存储空间？"></a>1、类的对象存储空间？</h2><ul>
+<li>非静态成员的数据类型大小之和。</li>
+<li>编译器加入的额外成员变量（如指向虚函数表的指针）。</li>
+<li>为了边缘对齐优化加入的padding。</li>
+</ul>
+<p>空类(无非静态数据成员)的对象的size为1, 当作为基类时, size为0.</p>
+<h2 id="2、简要说明C-的内存分区"><a href="#2、简要说明C-的内存分区" class="headerlink" title="2、简要说明C++的内存分区"></a>2、简要说明C++的内存分区</h2><p>C++中的内存分区，分别是堆、栈、自由存储区、全局&#x2F;静态存储区、常量存储区和代码区。如下图所示</p>
+<p><img src="http://oss.interviewguide.cn/img/202205220021689.png" alt="img"></p>
+<p><strong>栈</strong>：在执行函数时，函数内局部变量的存储单元都可以在栈上创建，函数执行结束时这些存储单元自动被释放。栈内存分配运算内置于处理器的指令集中，效率很高，但是分配的内存容量有限</p>
+<p><strong>堆</strong>：就是那些由 <code>new</code>分配的内存块，他们的释放编译器不去管，由我们的应用程序去控制，一般一个<code>new</code>就要对应一个 <code>delete</code>。如果程序员没有释放掉，那么在程序结束后，操作系统会自动回收</p>
+<p><strong>自由存储区</strong>：如果说堆是操作系统维护的一块内存，那么自由存储区就是C++中通过new和delete动态分配和释放对象的抽象概念。需要注意的是，自由存储区和堆比较像，但不等价。</p>
+<p><strong>全局&#x2F;静态存储区</strong>：全局变量和静态变量被分配到同一块内存中，在以前的C语言中，全局变量和静态变量又分为初始化的和未初始化的，在C++里面没有这个区分了，它们共同占用同一块内存区，在该区定义的变量若没有初始化，则会被自动初始化，例如int型变量自动初始为0</p>
+<p><strong>常量存储区</strong>：这是一块比较特殊的存储区，这里面存放的是常量，不允许修改</p>
+<p><strong>代码区</strong>：存放函数体的二进制代码</p>
+<h2 id="3、什么是内存池，如何实现"><a href="#3、什么是内存池，如何实现" class="headerlink" title="3、什么是内存池，如何实现"></a>3、什么是内存池，如何实现</h2><p>内存池（Memory Pool） 是一种<strong>内存分配</strong>方式。通常我们习惯直接使用new、malloc 等申请内存，这样做的缺点在于：由于所申请内存块的大小不定，当频繁使用时会造成大量的内存碎片并进而降低性能。内存池则是在真正使用内存之前，先申请分配一定数量的、大小相等(一般情况下)的内存块留作备用。当有新的内存需求时，就从内存池中分出一部分内存块， 若内存块不够再继续申请新的内存。这样做的一个显著优点是尽量避免了内存碎片，使得内存分配效率得到提升。</p>
+<p>这里<strong>简单描述一下《STL源码剖析》中的内存池实现机制</strong>：</p>
+<p><strong>allocate 包装 malloc，deallocate包装free</strong></p>
+<p>一般是一次20*2个的申请，先用一半，留着一半，为什么也没个说法，侯捷在STL那边书里说好像是C++委员会成员认为20是个比较好的数字，既不大也不小。</p>
+<ol>
+<li>首先客户端会调用malloc()配置一定数量的区块（固定大小的内存块，通常为8的倍数），假设40个32bytes的区块，其中20个区块（一半）给程序实际使用，1个区块交出，另外19个处于维护状态。剩余20个（一半）留给内存池，此时一共有（20*32byte）</li>
+<li>客户端之后有有内存需求，想申请（20<em>64bytes）的空间，这时内存池只有（20</em>32bytes），就先将（10*64bytes)个区块返回，1个区块交出，另外9个处于维护状态，此时内存池空空如也.</li>
+<li>接下来如果客户端还有内存需求，就必须再调用malloc()配置空间，此时新申请的区块数量会增加一个随着配置次数越来越大的附加量，同样一半提供程序使用，另一半留给内存池。申请内存的时候用永远是先看内存池有无剩余，有的话就用上，然后挂在0-15号某一条链表上，要不然就重新申请。</li>
+<li>如果整个堆的空间都不够了，就会在原先已经分配区块中寻找能满足当前需求的区块数量，能满足就返回，不能满足就向客户端报bad_alloc异常</li>
+</ol>
+<p>allocator就是用来分配内存的，最重要的两个函数是allocate和deallocate，就是用来申请内存和回收内存的，外部（一般指容器）调用的时候只需要知道这些就够了。</p>
+<p>内部实现，目前的所有编译器都是直接调用的::operator new()和::operator delete()，说白了就是和直接使用new运算符的效果是一样的，所以老师说它们都没做任何特殊处理。</p>
+<p><strong>其实最开始GC2.9之前</strong></p>
+<p>new和 operator new 的区别：new 是个运算符，编辑器会调用 operator new(0)</p>
+<p>operator new()里面有调用malloc的操作，那同样的 operator delete()里面有调用的free的操作</p>
+<p>GC2.9下的alloc函数的一个比较好的分配器的实现规则如下：</p>
+<p>维护一条0-15号的一共16条链表，其中 0 号表示8 bytes ，1 号表示 16 bytes，2 号表示 24 bytes。。。。而15 号表示 16* 8 &#x3D; 128 bytes。</p>
+<p>如果在申请内存时，申请内存的大小并不是8的倍数（比如2、4、7、9、18这样不是8的倍数），那就找刚好能满足内存大小的链表。比如想申请 12 个大小，那就按照 16 来处理，也就是找 1 号链表了；想申请 20 ，距离它最近的就是 24 了，那就找 2 号链表。</p>
+<p>只许比所要申请的内容大，不许小！</p>
+<p><strong>但是现在GC4.9及其之后</strong> 也还有 alloc 函数，只不过已经变成_pool_alloc这个名字了，名字已经改了，也不再是默认的了。</p>
+<p>你需要自己手动去指定它可以自己指定，比如</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">vector&lt;string,__gnu_cxx::pool_alloc&lt;string&gt;&gt; vec;</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<p>这样来使用它，等于兜兜转转又回到以前那种对malloc和free的包装形式了。</p>
+<h2 id="4、可以说一下你了解的C-得内存管理吗？"><a href="#4、可以说一下你了解的C-得内存管理吗？" class="headerlink" title="4、可以说一下你了解的C++得内存管理吗？"></a>4、可以说一下你了解的C++得内存管理吗？</h2><p>在C++中，内存分成5个区，他们分别是堆、栈、全局&#x2F;静态存储区和常量存储区和代码区。</p>
+<ul>
+<li>栈，在执行函数时，函数内局部变量的存储单元都可以在栈上创建，函数执行结束时这些存储单元自动被释放。栈内存分配运算内置于处理器的指令集中，效率很高，但是分配的内存容量有限。</li>
+<li>堆，就是那些由new分配的内存块，他们的释放编译器不去管，由我们的应用程序去控制，一般一个new就要对应一个delete。如果程序员没有释放掉，那么在程序结束后，操作系统会自动回收。</li>
+<li>全局&#x2F;静态存储区，内存在程序编译的时候就已经分配好，这块内存在程序的整个运行期间都存在。它主要存放静态数据（局部static变量，全局static变量）、全局变量和常量。</li>
+<li>常量存储区，这是一块比较特殊的存储区，他们里面存放的是常量字符串，不允许修改。</li>
+<li>代码区，存放程序的二进制代码</li>
+</ul>
+<h2 id="5、C-中类的数据成员和成员函数内存分布情况"><a href="#5、C-中类的数据成员和成员函数内存分布情况" class="headerlink" title="5、C++中类的数据成员和成员函数内存分布情况"></a>5、C++中类的数据成员和成员函数内存分布情况</h2><p>C++类是由结构体发展得来的，所以他们的成员变量（C语言的结构体只有成员变量）的内存分配机制是一样的。下面我们以类来说明问题，如果类的问题通了，结构体也也就没问题啦。 类分为成员变量和成员函数，我们先来讨论成员变量。</p>
+<p>一个类对象的地址就是类所包含的这一片内存空间的首地址，这个首地址也就对应具体某一个成员变量的地址。（在定义类对象的同时这些成员变量也就被定义了），举个例子：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Person</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">Person</span>()</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">this</span>-&gt;age = <span class="number">23</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">printAge</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        cout &lt;&lt; <span class="keyword">this</span>-&gt;age &lt;&lt;endl;</span><br><span class="line">    &#125;</span><br><span class="line">    ~<span class="built_in">Person</span>()&#123;&#125;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="type">int</span> age;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Person p;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;对象地址：&quot;</span>&lt;&lt; &amp;p &lt;&lt;endl;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;age地址：&quot;</span>&lt;&lt; &amp;(p.age) &lt;&lt;endl;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;对象大小：&quot;</span>&lt;&lt; <span class="built_in">sizeof</span>(p) &lt;&lt;endl;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;age大小：&quot;</span>&lt;&lt; <span class="built_in">sizeof</span>(p.age) &lt;&lt;endl;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//输出结果</span></span><br><span class="line"><span class="comment">//对象地址：0x7fffec0f15a8</span></span><br><span class="line"><span class="comment">//age地址：0x7fffec0f15a8</span></span><br><span class="line"><span class="comment">//对象大小：4</span></span><br><span class="line"><span class="comment">//age大小：4</span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<p>从代码运行结果来看，对象的大小和对象中数据成员的大小是一致的，也就是说，成员函数不占用对象的内存。这是因为所有的函数都是存放在代码区的，不管是全局函数，还是成员函数。</p>
+<p>要是成员函数占用类的对象空间，那么将是多么可怕的事情：定义一次类对象就有成员函数占用一段空间。</p>
+<p>我们再来补充一下静态成员函数的存放问题：<strong>静态成员函数与一般成员函数的唯一区别就是没有this指针</strong>，因此不能访问非静态数据成员。</p>
+<p>就像我前面提到的，<strong>所有函数都存放在代码区，静态函数也不例外。所有有人一看到 static 这个单词就主观的认为是存放在全局数据区，那是不对的。</strong></p>
+<h2 id="6、关于this指针你知道什么？全说出来"><a href="#6、关于this指针你知道什么？全说出来" class="headerlink" title="6、关于this指针你知道什么？全说出来"></a>6、关于this指针你知道什么？全说出来</h2><ul>
+<li>this指针是类的指针，指向对象的首地址。</li>
+<li>this指针只能在成员函数中使用，在全局函数、静态成员函数中都不能用this。</li>
+<li>this指针只有在成员函数中才有定义，且存储位置会因编译器不同有不同存储位置。</li>
+</ul>
+<p><strong>this指针的用处</strong></p>
+<p>一个对象的this指针并不是对象本身的一部分，不会影响 sizeof(对象) 的结果。this作用域是在类内部，当在类的<strong>非静态成员函数</strong>中访问类的<strong>非静态成员</strong>的时候（全局函数，静态函数中不能使用this指针），编译器会自动将对象本身的地址作为一个隐含参数传递给函数。也就是说，即使你没有写上this指针，编译器在编译的时候也是加上this的，它作为非静态成员函数的隐含形参，对各成员的访问均通过this进行</p>
+<p><strong>this指针的使用</strong></p>
+<p>一种情况就是，在类的非静态成员函数中返回类对象本身的时候，直接使用 return *this；</p>
+<p>另外一种情况是当形参数与成员变量名相同时用于区分，如this-&gt;n &#x3D; n （不能写成n &#x3D; n）</p>
+<p><strong>类的this指针有以下特点</strong></p>
+<p>(1）<strong>this</strong>只能在成员函数中使用，全局函数、静态函数都不能使用this。实际上，<strong>传入参数为当前对象地址，成员函数第一个参数为</strong>为<strong>T * const this</strong></p>
+<p>如：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">class A&#123;public:	int func(int p)&#123;&#125;&#125;;</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<p>其中，<strong>func</strong>的原型在编译器看来应该是：</p>
+<p><strong>int func(A * const this,int p);</strong></p>
+<p>（2）由此可见，<strong>this</strong>在成员函数的开始前构造，在成员函数的结束后清除。这个生命周期同任何一个函数的参数是一样的，没有任何区别。当调用一个类的成员函数时，编译器将类的指针作为函数的this参数传递进去。如：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">A a;a.func(10);//此处，编译器将会编译成：A::func(&amp;a,10);</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<p>看起来和静态函数没差别，对吗？不过，区别还是有的。编译器通常会对this指针做一些优化，因此，this指针的传递效率比较高，例如VC通常是通过ecx（计数寄存器）传递this参数的。</p>
+<h2 id="7、几个this指针的易混问题"><a href="#7、几个this指针的易混问题" class="headerlink" title="7、几个this指针的易混问题"></a>7、几个this指针的易混问题</h2><h3 id="A-this指针是什么时候创建的？"><a href="#A-this指针是什么时候创建的？" class="headerlink" title="A. this指针是什么时候创建的？"></a>A. this指针是什么时候创建的？</h3><p>this在成员函数的开始执行前构造，在成员的执行结束后清除。</p>
+<p>但是如果class或者struct里面没有方法的话，它们是没有构造函数的，只能当做C的struct使用。采用TYPE xx的方式定义的话，在栈里分配内存，这时候this指针的值就是这块内存的地址。采用new的方式创建对象的话，在堆里分配内存，new操作符通过eax（累加寄存器）返回分配的地址，然后设置给指针变量。之后去调用构造函数（如果有构造函数的话），这时将这个内存块的地址传给ecx，之后构造函数里面怎么处理请看上面的回答</p>
+<h3 id="B-this指针存放在何处？堆、栈、全局变量，还是其他？"><a href="#B-this指针存放在何处？堆、栈、全局变量，还是其他？" class="headerlink" title="B. this指针存放在何处？堆、栈、全局变量，还是其他？"></a>B. this指针存放在何处？堆、栈、全局变量，还是其他？</h3><p>this指针会因编译器不同而有不同的放置位置。可能是栈，也可能是寄存器，甚至全局变量。在汇编级别里面，一个值只会以3种形式出现：立即数、寄存器值和内存变量值。不是存放在寄存器就是存放在内存中，它们并不是和高级语言变量对应的。</p>
+<h3 id="C-this指针是如何传递类中的函数的？绑定？还是在函数参数的首参数就是this指针？那么，this指针又是如何找到“类实例后函数的”？"><a href="#C-this指针是如何传递类中的函数的？绑定？还是在函数参数的首参数就是this指针？那么，this指针又是如何找到“类实例后函数的”？" class="headerlink" title="C. this指针是如何传递类中的函数的？绑定？还是在函数参数的首参数就是this指针？那么，this指针又是如何找到“类实例后函数的”？"></a>C. this指针是如何传递类中的函数的？绑定？还是在函数参数的首参数就是this指针？那么，this指针又是如何找到“类实例后函数的”？</h3><p>大多数编译器通过ecx（寄数寄存器）寄存器传递this指针。事实上，这也是一个潜规则。一般来说，不同编译器都会遵从一致的传参规则，否则不同编译器产生的obj就无法匹配了。</p>
+<p>在call之前，编译器会把对应的对象地址放到eax中。this是通过函数参数的首参来传递的。this指针在调用之前生成，至于“类实例后函数”，没有这个说法。类在实例化时，只分配类中的变量空间，并没有为函数分配空间。自从类的函数定义完成后，它就在那儿，不会跑的</p>
+<h3 id="D-this指针是如何访问类中的变量的？"><a href="#D-this指针是如何访问类中的变量的？" class="headerlink" title="D. this指针是如何访问类中的变量的？"></a>D. this指针是如何访问类中的变量的？</h3><p>如果不是类，而是结构体的话，那么，如何通过结构指针来访问结构中的变量呢？如果你明白这一点的话，就很容易理解这个问题了。</p>
+<p>在C++中，类和结构是只有一个区别的：类的成员默认是private，而结构是public。</p>
+<p>this是类的指针，如果换成结构体，那this就是结构的指针了。</p>
+<h3 id="E-我们只有获得一个对象后，才能通过对象使用this指针。如果我们知道一个对象this指针的位置，可以直接使用吗？"><a href="#E-我们只有获得一个对象后，才能通过对象使用this指针。如果我们知道一个对象this指针的位置，可以直接使用吗？" class="headerlink" title="E.我们只有获得一个对象后，才能通过对象使用this指针。如果我们知道一个对象this指针的位置，可以直接使用吗？"></a>E.我们只有获得一个对象后，才能通过对象使用this指针。如果我们知道一个对象this指针的位置，可以直接使用吗？</h3><p>this指针只有在成员函数中才有定义。因此，你获得一个对象后，也不能通过对象使用this指针。所以，我们无法知道一个对象的this指针的位置（只有在成员函数里才有this指针的位置）。当然，在成员函数里，你是可以知道this指针的位置的（可以通过&amp;this获得），也可以直接使用它。</p>
+<h3 id="F-每个类编译后，是否创建一个类中函数表保存函数指针，以便用来调用函数？"><a href="#F-每个类编译后，是否创建一个类中函数表保存函数指针，以便用来调用函数？" class="headerlink" title="F.每个类编译后，是否创建一个类中函数表保存函数指针，以便用来调用函数？"></a>F.每个类编译后，是否创建一个类中函数表保存函数指针，以便用来调用函数？</h3><p>普通的类函数（不论是成员函数，还是静态函数）都不会创建一个函数表来保存函数指针。只有虚函数才会被放到函数表中。但是，即使是虚函数，如果编译期就能明确知道调用的是哪个函数，编译器就不会通过函数表中的指针来间接调用，而是会直接调用该函数。正是由于this指针的存在，用来指向不同的对象，从而确保不同对象之间调用相同的函数可以互不干扰。</p>
+<h2 id="8、-内存泄漏的后果？如何监测？解决方法？"><a href="#8、-内存泄漏的后果？如何监测？解决方法？" class="headerlink" title="8、 内存泄漏的后果？如何监测？解决方法？"></a>8、 内存泄漏的后果？如何监测？解决方法？</h2><p><strong>1) 内存泄漏</strong></p>
+<p>内存泄漏是指由于疏忽或错误造成了程序未能释放掉不再使用的内存的情况。内存泄漏并非指内存在物理上消失，而是应用程序分配某段内存后，由于设计错误，失去了对该段内存的控制；</p>
+<p><strong>2) 后果</strong></p>
+<p>只发生一次小的内存泄漏可能不被注意，但泄漏大量内存的程序将会出现各种证照：性能下降到内存逐渐用完，导致另一个程序失败；</p>
+<p><strong>3) 如何排除</strong></p>
+<p>使用工具软件BoundsChecker，BoundsChecker是一个运行时错误检测工具，它主要定位程序运行时期发生的各种错误；</p>
+<p>调试运行DEBUG版程序，运用以下技术：CRT(C run-time libraries)、运行时函数调用堆栈、内存泄漏时提示的内存分配序号(集成开发环境OUTPUT窗口)，综合分析内存泄漏的原因，排除内存泄漏。</p>
+<p><strong>4) 解决方法</strong></p>
+<p>智能指针。</p>
+<p><strong>5) 检查、定位内存泄漏</strong></p>
+<p>检查方法：在main函数最后面一行，加上一句_CrtDumpMemoryLeaks()。调试程序，自然关闭程序让其退出，查看输出：</p>
+<p>输出这样的格式{453}normal block at 0x02432CA8,868 bytes long</p>
+<p>被{}包围的453就是我们需要的内存泄漏定位值，868 bytes long就是说这个地方有868比特内存没有释放。</p>
+<p>定位代码位置</p>
+<p>在main函数第一行加上_CrtSetBreakAlloc(453);意思就是在申请453这块内存的位置中断。然后调试程序，程序中断了，查看调用堆栈。加上头文件#include &lt;crtdbg.h&gt;</p>
+<h2 id="9、在成员函数中调用delete-this会出现什么问题？对象还可以使用吗？"><a href="#9、在成员函数中调用delete-this会出现什么问题？对象还可以使用吗？" class="headerlink" title="9、在成员函数中调用delete this会出现什么问题？对象还可以使用吗？"></a>9、在成员函数中调用delete this会出现什么问题？对象还可以使用吗？</h2><p>在类对象的内存空间中，只有数据成员和虚函数表指针，并不包含代码内容，类的成员函数单独放在代码段中。在调用成员函数时，隐含传递一个this指针，让成员函数知道当前是哪个对象在调用它。当调用delete this时，类对象的内存空间被释放。在delete this之后进行的其他任何函数调用，只要不涉及到this指针的内容，都能够正常运行。一旦涉及到this指针，如操作数据成员，调用虚函数等，就会出现不可预期的问题。</p>
+<h2 id="10、为什么是不可预期的问题？"><a href="#10、为什么是不可预期的问题？" class="headerlink" title="10、为什么是不可预期的问题？"></a>10、为什么是不可预期的问题？</h2><p>delete this之后不是释放了类对象的内存空间了么，那么这段内存应该已经还给系统，不再属于这个进程。照这个逻辑来看，应该发生指针错误，无访问权限之类的令系统崩溃的问题才对啊？这个问题牵涉到操作系统的内存管理策略。delete this释放了类对象的内存空间，但是内存空间却并不是马上被回收到系统中，可能是缓冲或者其他什么原因，导致这段内存空间暂时并没有被系统收回。此时这段内存是可以访问的，你可以加上100，加上200，但是其中的值却是不确定的。当你获取数据成员，可能得到的是一串很长的未初始化的随机数；访问虚函数表，指针无效的可能性非常高，造成系统崩溃。</p>
+<h2 id="11、-如果在类的析构函数中调用delete-this，会发生什么？"><a href="#11、-如果在类的析构函数中调用delete-this，会发生什么？" class="headerlink" title="11、 如果在类的析构函数中调用delete this，会发生什么？"></a>11、 如果在类的析构函数中调用delete this，会发生什么？</h2><p>会导致堆栈溢出。原因很简单，delete的本质是“为将被释放的内存调用一个或多个析构函数，然后，释放内存”。显然，delete this会去调用本对象的析构函数，而析构函数中又调用delete this，形成无限递归，造成堆栈溢出，系统崩溃。</p>
+<h2 id="12、你知道空类的大小是多少吗？"><a href="#12、你知道空类的大小是多少吗？" class="headerlink" title="12、你知道空类的大小是多少吗？"></a>12、你知道空类的大小是多少吗？</h2><ol>
+<li>C++空类的大小不为0，不同编译器设置不一样，vs设置为1；</li>
+<li>C++标准指出，不允许一个对象（当然包括类对象）的大小为0，不同的对象不能具有相同的地址；</li>
+<li>带有虚函数的C++类大小不为1，因为每一个对象会有一个vptr指向虚函数表，具体大小根据指针大小确定；</li>
+<li>C++中要求对于类的每个实例都必须有独一无二的地址,那么编译器自动为空类分配一个字节大小，这样便保证了每个实例均有独一无二的内存地址。</li>
+</ol>
+<h2 id="13、请说一下以下几种情况下，下面几个类的大小各是多少？"><a href="#13、请说一下以下几种情况下，下面几个类的大小各是多少？" class="headerlink" title="13、请说一下以下几种情况下，下面几个类的大小各是多少？"></a>13、请说一下以下几种情况下，下面几个类的大小各是多少？</h2><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> &#123;&#125;;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">  cout&lt;&lt;<span class="built_in">sizeof</span>(A)&lt;&lt;endl;<span class="comment">// 输出 1;</span></span><br><span class="line">  A a; </span><br><span class="line">  cout&lt;&lt;<span class="built_in">sizeof</span>(a)&lt;&lt;endl;<span class="comment">// 输出 1;</span></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<p>空类的大小是1， 在C++中空类会占一个字节，这是为了让对象的实例能够相互区别。具体来说，空类同样可以被实例化，并且每个实例在内存中都有独一无二的地址，因此，编译器会给空类隐含加上一个字节，这样空类实例化之后就会拥有独一无二的内存地址。当该空白类作为基类时，该类的大小就优化为0了，子类的大小就是子类本身的大小。这就是所谓的空白基类最优化。</p>
+<p>空类的实例大小就是类的大小，所以sizeof(a)&#x3D;1字节,如果a是指针，则sizeof(a)就是指针的大小，即4字节。</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> &#123; <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">Fun</span><span class="params">()</span></span>&#123;&#125; &#125;;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">  cout&lt;&lt;<span class="built_in">sizeof</span>(A)&lt;&lt;endl;<span class="comment">// 输出 4(32位机器)/8(64位机器);</span></span><br><span class="line">  A a; </span><br><span class="line">  cout&lt;&lt;<span class="built_in">sizeof</span>(a)&lt;&lt;endl;<span class="comment">// 输出 4(32位机器)/8(64位机器);</span></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<p>因为有虚函数的类对象中都有一个虚函数表指针 __vptr，其大小是4字节</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> &#123; <span class="type">static</span> <span class="type">int</span> a; &#125;;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">  cout&lt;&lt;<span class="built_in">sizeof</span>(A)&lt;&lt;endl;<span class="comment">// 输出 1;</span></span><br><span class="line">  A a; </span><br><span class="line">  cout&lt;&lt;<span class="built_in">sizeof</span>(a)&lt;&lt;endl;<span class="comment">// 输出 1;</span></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<p>静态成员存放在静态存储区，不占用类的大小, 普通函数也不占用类大小</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> &#123; <span class="type">int</span> a; &#125;;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">  cout&lt;&lt;<span class="built_in">sizeof</span>(A)&lt;&lt;endl;<span class="comment">// 输出 4;</span></span><br><span class="line">  A a; </span><br><span class="line">  cout&lt;&lt;<span class="built_in">sizeof</span>(a)&lt;&lt;endl;<span class="comment">// 输出 4;</span></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> &#123; <span class="type">static</span> <span class="type">int</span> a; <span class="type">int</span> b; &#125;;;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">  cout&lt;&lt;<span class="built_in">sizeof</span>(A)&lt;&lt;endl;<span class="comment">// 输出 4;</span></span><br><span class="line">  A a; </span><br><span class="line">  cout&lt;&lt;<span class="built_in">sizeof</span>(a)&lt;&lt;endl;<span class="comment">// 输出 4;</span></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<p>静态成员a不占用类的大小，所以类的大小就是b变量的大小 即4个字节</p>
+<h2 id="14、this指针调用成员变量时，堆栈会发生什么变化？"><a href="#14、this指针调用成员变量时，堆栈会发生什么变化？" class="headerlink" title="14、this指针调用成员变量时，堆栈会发生什么变化？"></a>14、this指针调用成员变量时，堆栈会发生什么变化？</h2><p>当在类的非静态成员函数访问类的非静态成员时，编译器会自动将对象的地址传给作为隐含参数传递给函数，这个隐含参数就是this指针。</p>
+<p>即使你并没有写this指针，编译器在链接时也会加上this的，对各成员的访问都是通过this的。</p>
+<p>例如你建立了类的多个对象时，在调用类的成员函数时，你并不知道具体是哪个对象在调用，此时你可以通过查看this指针来查看具体是哪个对象在调用。This指针首先入栈，然后成员函数的参数从右向左进行入栈，最后函数返回地址入栈。</p>
+<h2 id="15、类对象的大小受哪些因素影响？"><a href="#15、类对象的大小受哪些因素影响？" class="headerlink" title="15、类对象的大小受哪些因素影响？"></a>15、类对象的大小受哪些因素影响？</h2><ol>
+<li>类的非静态成员变量大小，静态成员不占据类的空间，成员函数也不占据类的空间大小；</li>
+<li>内存对齐另外分配的空间大小，类内的数据也是需要进行内存对齐操作的；</li>
+<li>虚函数的话，会在类对象插入vptr指针，加上指针大小；</li>
+<li>当该类是某类的派生类，那么派生类继承的基类部分的数据成员也会存在在派生类中的空间中，也会对派生类进行扩展。</li>
+</ol>
+]]></content>
+      <categories>
+        <category>八股</category>
+      </categories>
+      <tags>
+        <tag>C++</tag>
+        <tag>内存管理</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>面经-C++STL模板库</title>
     <url>/2023/07/15/C++STL%E6%A8%A1%E6%9D%BF%E5%BA%93/</url>
     <content><![CDATA[<h1 id="C-STL模板库"><a href="#C-STL模板库" class="headerlink" title="C++STL模板库"></a>C++STL模板库</h1><h2 id="1、什么是STL？"><a href="#1、什么是STL？" class="headerlink" title="1、什么是STL？"></a>1、什么是STL？</h2><p>C++ STL从广义来讲包括了三类：算法，容器和迭代器。</p>
@@ -516,139 +794,6 @@
       </tags>
   </entry>
   <entry>
-    <title>面经-C++11新标准</title>
-    <url>/2023/07/15/C++11%E6%96%B0%E6%A0%87%E5%87%86/</url>
-    <content><![CDATA[<h1 id="C-11新标准"><a href="#C-11新标准" class="headerlink" title="C++11新标准"></a>C++11新标准</h1><h2 id="1、C-11有哪些新特性？"><a href="#1、C-11有哪些新特性？" class="headerlink" title="1、C++ 11有哪些新特性？"></a>1、C++ 11有哪些新特性？</h2><ul>
-<li><p>nullptr替代 NULL</p>
-</li>
-<li><p>引入了 auto 和 decltype 这两个关键字实现了类型推导</p>
-</li>
-<li><p>基于范围的 for 循环for(auto&amp; i : res){}</p>
-</li>
-<li><p>类和结构体的中初始化列表</p>
-</li>
-<li><p>Lambda 表达式（匿名函数）</p>
-</li>
-<li><p>std::forward_list（单向链表）</p>
-</li>
-<li><p>右值引用和move语义</p>
-</li>
-<li><p>…</p>
-</li>
-</ul>
-<h2 id="2、auto、decltype和decltype-auto-的用法"><a href="#2、auto、decltype和decltype-auto-的用法" class="headerlink" title="2、auto、decltype和decltype(auto)的用法"></a>2、auto、decltype和decltype(auto)的用法</h2><p><strong>（1）auto</strong></p>
-<p>C++11新标准引入了auto类型说明符，用它就能让编译器替我们去分析表达式所属的类型。和原来那些只对应某种特定的类型说明符(例如 int)不同，</p>
-<p><strong>auto 让编译器通过初始值来进行类型推演。从而获得定义变量的类型，所以说 auto 定义的变量必须有初始值。</strong></p>
-<p>举个例子：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">//普通；类型</span></span><br><span class="line"><span class="type">int</span> a = <span class="number">1</span>, b = <span class="number">3</span>;</span><br><span class="line"><span class="keyword">auto</span> c = a + b;<span class="comment">// c为int型</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//const类型</span></span><br><span class="line"><span class="type">const</span> <span class="type">int</span> i = <span class="number">5</span>;</span><br><span class="line"><span class="keyword">auto</span> j = i; <span class="comment">// 变量i是顶层const, 会被忽略, 所以j的类型是int</span></span><br><span class="line"><span class="keyword">auto</span> k = &amp;i; <span class="comment">// 变量i是一个常量, 对常量取地址是一种底层const, 所以k的类型是const int*</span></span><br><span class="line"><span class="type">const</span> <span class="keyword">auto</span> l = i; <span class="comment">//如果希望推断出的类型是顶层const的, 那么就需要在auto前面加上cosnt</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//引用和指针类型</span></span><br><span class="line"><span class="type">int</span> x = <span class="number">2</span>;</span><br><span class="line"><span class="type">int</span>&amp; y = x;</span><br><span class="line"><span class="keyword">auto</span> z = y; <span class="comment">//z是int型不是int&amp; 型</span></span><br><span class="line"><span class="keyword">auto</span>&amp; p1 = y; <span class="comment">//p1是int&amp;型</span></span><br><span class="line"><span class="keyword">auto</span> p2 = &amp;x; <span class="comment">//p2是指针类型int*</span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
-
-<p><strong>（2）decltype</strong></p>
-<p>有的时候我们还会遇到这种情况，<strong>我们希望从表达式中推断出要定义变量的类型，但却不想用表达式的值去初始化变量。</strong>还有可能是函数的返回类型为某表达式的值类型。在这些时候auto显得就无力了，所以C++11又引入了第二种类型说明符decltype，<strong>它的作用是选择并返回操作数的数据类型。在此过程中，编译器只是分析表达式并得到它的类型，却不进行实际的计算表达式的值。</strong></p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">func</span><span class="params">()</span> </span>&#123;<span class="keyword">return</span> <span class="number">0</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">//普通类型</span></span><br><span class="line"><span class="keyword">decltype</span>(<span class="built_in">func</span>()) sum = <span class="number">5</span>; <span class="comment">// sum的类型是函数func()的返回值的类型int, 但是这时不会实际调用函数func()</span></span><br><span class="line"><span class="type">int</span> a = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">decltype</span>(a) b = <span class="number">4</span>; <span class="comment">// a的类型是int, 所以b的类型也是int</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//不论是顶层const还是底层const, decltype都会保留   </span></span><br><span class="line"><span class="type">const</span> <span class="type">int</span> c = <span class="number">3</span>;</span><br><span class="line"><span class="keyword">decltype</span>(c) d = c; <span class="comment">// d的类型和c是一样的, 都是顶层const</span></span><br><span class="line"><span class="type">int</span> e = <span class="number">4</span>;</span><br><span class="line"><span class="type">const</span> <span class="type">int</span>* f = &amp;e; <span class="comment">// f是底层const</span></span><br><span class="line"><span class="keyword">decltype</span>(f) g = f; <span class="comment">// g也是底层const</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//引用与指针类型</span></span><br><span class="line"><span class="comment">//1. 如果表达式是引用类型, 那么decltype的类型也是引用</span></span><br><span class="line"><span class="type">const</span> <span class="type">int</span> i = <span class="number">3</span>, &amp;j = i;</span><br><span class="line"><span class="keyword">decltype</span>(j) k = <span class="number">5</span>; <span class="comment">// k的类型是 const int&amp;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//2. 如果表达式是引用类型, 但是想要得到这个引用所指向的类型, 需要修改表达式:</span></span><br><span class="line"><span class="type">int</span> i = <span class="number">3</span>, &amp;r = i;</span><br><span class="line"><span class="keyword">decltype</span>(r + <span class="number">0</span>) t = <span class="number">5</span>; <span class="comment">// 此时是int类型</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//3. 对指针的解引用操作返回的是引用类型</span></span><br><span class="line"><span class="type">int</span> i = <span class="number">3</span>, j = <span class="number">6</span>, *p = &amp;i;</span><br><span class="line"><span class="keyword">decltype</span>(*p) c = j; <span class="comment">// c是int&amp;类型, c和j绑定在一起</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//4. 如果一个表达式的类型不是引用, 但是我们需要推断出引用, 那么可以加上一对括号, 就变成了引用类型了</span></span><br><span class="line"><span class="type">int</span> i = <span class="number">3</span>;</span><br><span class="line"><span class="keyword">decltype</span>((i)) j = i; <span class="comment">// 此时j的类型是int&amp;类型, j和i绑定在了一起</span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
-
-<p><strong>（3）decltype(auto)</strong></p>
-<p>decltype(auto)是C++14新增的类型指示符，可以用来声明变量以及指示函数返回类型。在使用时，会将“&#x3D;”号右边的表达式替换掉auto，再根据decltype的语法规则来确定类型。举个例子：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> e = <span class="number">4</span>;</span><br><span class="line"><span class="type">const</span> <span class="type">int</span>* f = &amp;e; <span class="comment">// f是底层const</span></span><br><span class="line"><span class="keyword">decltype</span>(<span class="keyword">auto</span>) j = f;<span class="comment">//j的类型是const int* 并且指向的是e</span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="3、C-中NULL和nullptr区别"><a href="#3、C-中NULL和nullptr区别" class="headerlink" title="3、C++中NULL和nullptr区别"></a>3、C++中NULL和nullptr区别</h2><p>算是为了与C语言进行兼容而定义的一个问题吧</p>
-<p>NULL来自C语言，一般由宏定义实现，而 nullptr 则是C++11的新增关键字。</p>
-<p>在C语言中，NULL被定义为(void*)0,而在C++语言中，NULL则被定义为整数0。编译器一般对其实际定义如下：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifdef</span> __cplusplus</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> NULL 0</span></span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> NULL ((void *)0)</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
-
-<p>在C++中指针必须有明确的类型定义。但是将NULL定义为0带来的另一个问题是无法与整数的0区分。因为C++中允许有函数重载，所以可以试想如下函数定义情况：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">fun</span><span class="params">(<span class="type">char</span>* p)</span> </span>&#123;</span><br><span class="line">	cout &lt;&lt; <span class="string">&quot;char*&quot;</span> &lt;&lt; endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">fun</span><span class="params">(<span class="type">int</span> p)</span> </span>&#123;</span><br><span class="line">	cout &lt;&lt; <span class="string">&quot;int&quot;</span> &lt;&lt; endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">fun</span>(<span class="literal">NULL</span>);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//输出结果：int</span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
-
-<p>那么<strong>在传入NULL参数时，会把NULL当做整数0来看，如果我们想调用参数是指针的函数，该怎么办呢?。nullptr在C++11被引入用于解决这一问题，nullptr可以明确区分整型和指针类型，能够根据环境自动转换成相应的指针类型，但不会被转换为任何整型，所以不会造成参数传递错误。</strong></p>
-<p>nullptr的一种实现方式如下：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="type">const</span> <span class="keyword">class</span> <span class="title class_">nullptr_t</span>&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="keyword">template</span>&lt;<span class="keyword">class</span> <span class="title class_">T</span>&gt;  <span class="keyword">inline</span> <span class="keyword">operator</span> T*() <span class="type">const</span>&#123; <span class="keyword">return</span> <span class="number">0</span>; &#125;</span><br><span class="line">    <span class="keyword">template</span>&lt;<span class="keyword">class</span> <span class="title class_">C</span>, <span class="keyword">class</span> <span class="title class_">T</span>&gt; <span class="keyword">inline</span> <span class="keyword">operator</span> T C::*() <span class="type">const</span> &#123; <span class="keyword">return</span> <span class="number">0</span>; &#125;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="type">void</span> <span class="keyword">operator</span>&amp;() <span class="type">const</span>;</span><br><span class="line">&#125; <span class="literal">nullptr</span> = &#123;&#125;;</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
-
-<p>以上通过模板类和运算符重载的方式来对不同类型的指针进行实例化从而解决了(void*)指针带来参数类型不明的问题，<strong>另外由于nullptr是明确的指针类型，所以不会与整形变量相混淆。</strong>但nullptr仍然存在一定问题，例如：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">fun</span><span class="params">(<span class="type">char</span>* p)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	cout&lt;&lt; <span class="string">&quot;char* p&quot;</span> &lt;&lt;endl;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">fun</span><span class="params">(<span class="type">int</span>* p)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	cout&lt;&lt; <span class="string">&quot;int* p&quot;</span> &lt;&lt;endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">fun</span><span class="params">(<span class="type">int</span> p)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	cout&lt;&lt; <span class="string">&quot;int p&quot;</span> &lt;&lt;endl;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">fun</span>((<span class="type">char</span>*)<span class="literal">nullptr</span>);<span class="comment">//语句1</span></span><br><span class="line">	<span class="built_in">fun</span>(<span class="literal">nullptr</span>);<span class="comment">//语句2</span></span><br><span class="line">    <span class="built_in">fun</span>(<span class="literal">NULL</span>);<span class="comment">//语句3</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//运行结果：</span></span><br><span class="line"><span class="comment">//语句1：char* p</span></span><br><span class="line"><span class="comment">//语句2:报错，有多个匹配</span></span><br><span class="line"><span class="comment">//3：int p</span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
-
-<p>在这种情况下存在对不同指针类型的函数重载，此时如果传入nullptr指针则仍然存在无法区分应实际调用哪个函数，这种情况下必须显示的指明参数类型。</p>
-<h2 id="4、智能指针的原理、常用的智能指针及实现"><a href="#4、智能指针的原理、常用的智能指针及实现" class="headerlink" title="4、智能指针的原理、常用的智能指针及实现"></a>4、智能指针的原理、常用的智能指针及实现</h2><p><strong>原理</strong></p>
-<p>智能指针是一个类，用来存储指向动态分配对象的指针，负责自动释放动态分配的对象，防止堆内存泄漏。动态分配的资源，交给一个类对象去管理，当类对象声明周期结束时，自动调用析构函数释放资源</p>
-<p><strong>常用的智能指针</strong></p>
-<p><strong>(1) shared_ptr</strong></p>
-<p>实现原理：采用引用计数器的方法，允许多个智能指针指向同一个对象，每当多一个指针指向该对象时，指向该对象的所有智能指针内部的引用计数加1，每当减少一个智能指针指向对象时，引用计数会减1，当计数为0的时候会自动的释放动态分配的资源。</p>
-<ul>
-<li>智能指针将一个计数器与类指向的对象相关联，引用计数器跟踪共有多少个类对象共享同一指针</li>
-<li>每次创建类的新对象时，初始化指针并将引用计数置为1</li>
-<li>当对象作为另一对象的副本而创建时，拷贝构造函数拷贝指针并增加与之相应的引用计数</li>
-<li>对一个对象进行赋值时，赋值操作符减少左操作数所指对象的引用计数（如果引用计数为减至0，则删除对象），并增加右操作数所指对象的引用计数</li>
-<li>调用析构函数时，构造函数减少引用计数（如果引用计数减至0，则删除基础对象）</li>
-</ul>
-<p><strong>(2) unique_ptr</strong></p>
-<p>unique_ptr采用的是独享所有权语义，一个非空的unique_ptr总是拥有它所指向的资源。转移一个unique_ptr将会把所有权全部从源指针转移给目标指针，源指针被置空；所以unique_ptr不支持普通的拷贝和赋值操作，不能用在STL标准容器中；局部变量的返回值除外（因为编译器知道要返回的对象将要被销毁）；如果你拷贝一个unique_ptr，那么拷贝结束后，这两个unique_ptr都会指向相同的资源，造成在结束时对同一内存指针多次释放而导致程序崩溃。</p>
-<p><strong>(3) weak_ptr</strong></p>
-<p>weak_ptr：弱引用。 引用计数有一个问题就是互相引用形成环（环形引用），这样两个指针指向的内存都无法释放。需要使用weak_ptr打破环形引用。weak_ptr是一个弱引用，它是为了配合shared_ptr而引入的一种智能指针，它指向一个由shared_ptr管理的对象而不影响所指对象的生命周期，也就是说，它只引用，不计数。如果一块内存被shared_ptr和weak_ptr同时引用，当所有shared_ptr析构了之后，不管还有没有weak_ptr引用该内存，内存也会被释放。所以weak_ptr不保证它指向的内存一定是有效的，在使用之前使用函数lock()检查weak_ptr是否为空指针。</p>
-<p><strong>(4) auto_ptr</strong></p>
-<p>主要是为了解决“有异常抛出时发生内存泄漏”的问题 。因为发生异常而无法正常释放内存。</p>
-<p>auto_ptr有拷贝语义，拷贝后源对象变得无效，这可能引发很严重的问题；而unique_ptr则无拷贝语义，但提供了移动语义，这样的错误不再可能发生，因为很明显必须使用std::move()进行转移。</p>
-<p>auto_ptr不支持拷贝和赋值操作，不能用在STL标准容器中。STL容器中的元素经常要支持拷贝、赋值操作，在这过程中auto_ptr会传递所有权，所以不能在STL中使用。</p>
-<p><strong>智能指针shared_ptr代码实现：</strong></p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">SharedPtr</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="built_in">SharedPtr</span>(T* ptr = <span class="literal">NULL</span>):_ptr(ptr), _pcount(<span class="keyword">new</span> <span class="built_in">int</span>(<span class="number">1</span>))</span><br><span class="line">	&#123;&#125;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">SharedPtr</span>(<span class="type">const</span> SharedPtr&amp; s):_ptr(s._ptr), _pcount(s._pcount)&#123;</span><br><span class="line">		(*_pcount)++;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	SharedPtr&lt;T&gt;&amp; <span class="keyword">operator</span>=(<span class="type">const</span> SharedPtr&amp; s)&#123;</span><br><span class="line">		<span class="keyword">if</span> (<span class="keyword">this</span> != &amp;s)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">if</span> (--(*(<span class="keyword">this</span>-&gt;_pcount)) == <span class="number">0</span>)</span><br><span class="line">			&#123;</span><br><span class="line">				<span class="keyword">delete</span> <span class="keyword">this</span>-&gt;_ptr;</span><br><span class="line">				<span class="keyword">delete</span> <span class="keyword">this</span>-&gt;_pcount;</span><br><span class="line">			&#125;</span><br><span class="line">			_ptr = s._ptr;</span><br><span class="line">			_pcount = s._pcount;</span><br><span class="line">			*(_pcount)++;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> *<span class="keyword">this</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	T&amp; <span class="keyword">operator</span>*()</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">return</span> *(<span class="keyword">this</span>-&gt;_ptr);</span><br><span class="line">	&#125;</span><br><span class="line">	T* <span class="keyword">operator</span>-&gt;()</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">this</span>-&gt;_ptr;</span><br><span class="line">	&#125;</span><br><span class="line">	~<span class="built_in">SharedPtr</span>()</span><br><span class="line">	&#123;</span><br><span class="line">		--(*(<span class="keyword">this</span>-&gt;_pcount));</span><br><span class="line">		<span class="keyword">if</span> (*(<span class="keyword">this</span>-&gt;_pcount) == <span class="number">0</span>)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">delete</span> _ptr;</span><br><span class="line">			_ptr = <span class="literal">NULL</span>;</span><br><span class="line">			<span class="keyword">delete</span> _pcount;</span><br><span class="line">			_pcount = <span class="literal">NULL</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">	T* _ptr;</span><br><span class="line">	<span class="type">int</span>* _pcount;<span class="comment">//指向引用计数的指针</span></span><br><span class="line">&#125;;</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="5、说一说你了解的关于lambda函数的全部知识"><a href="#5、说一说你了解的关于lambda函数的全部知识" class="headerlink" title="5、说一说你了解的关于lambda函数的全部知识"></a>5、说一说你了解的关于lambda函数的全部知识</h2><ol>
-<li><p>利用lambda表达式可以编写内嵌的匿名函数，用以替换独立函数或者函数对象；</p>
-</li>
-<li><p>每当你定义一个lambda表达式后，编译器会自动生成一个匿名类（这个类当然重载了()运算符），我们称为闭包类型（closure type）。那么在运行时，这个lambda表达式就会返回一个匿名的闭包实例，其实一个右值。所以，我们上面的lambda表达式的结果就是一个个闭包。闭包的一个强大之处是其可以通过传值或者引用的方式捕捉其封装作用域内的变量，前面的方括号就是用来定义捕捉模式以及变量，我们又将其称为lambda捕捉块。</p>
-</li>
-<li><p>lambda表达式的语法定义如下：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">[capture] （parameters） <span class="keyword">mutable</span> -&gt;<span class="keyword">return</span>-type &#123;statement&#125;;</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
-</li>
-<li><p>lambda必须使用尾置返回来指定返回类型，可以忽略参数列表和返回值，但必须永远包含捕获列表和函数体；</p>
-</li>
-</ol>
-<h2 id="6、智能指针的作用"><a href="#6、智能指针的作用" class="headerlink" title="6、智能指针的作用"></a>6、智能指针的作用</h2><ol>
-<li>C++11中引入了智能指针的概念，方便管理堆内存。使用普通指针，容易造成堆内存泄露（忘记释放），二次释放，程序发生异常时内存泄露等问题等，使用智能指针能更好的管理堆内存。</li>
-<li>智能指针在C++11版本之后提供，包含在头文件<memory>中，shared_ptr、unique_ptr、weak_ptr。shared_ptr多个指针指向相同的对象。shared_ptr使用引用计数，每一个shared_ptr的拷贝都指向相同的内存。每使用他一次，内部的引用计数加1，每析构一次，内部的引用计数减1，减为0时，自动删除所指向的堆内存。shared_ptr内部的引用计数是线程安全的，但是对象的读取需要加锁。</li>
-<li>初始化。智能指针是个模板类，可以指定类型，传入指针通过构造函数初始化。也可以使用make_shared函数初始化。不能将指针直接赋值给一个智能指针，一个是类，一个是指针。例如std::shared_ptr<int> p4 &#x3D; new int(1);的写法是错误的</li>
-</ol>
-<p>拷贝和赋值。拷贝使得对象的引用计数增加1，赋值使得原对象引用计数减1，当计数为0时，自动释放内存。后来指向的对象引用计数加1，指向后来的对象</p>
-<ol>
-<li>unique_ptr“唯一”拥有其所指对象，同一时刻只能有一个unique_ptr指向给定对象（通过禁止拷贝语义、只有移动语义来实现）。相比与原始指针unique_ptr用于其RAII的特性，使得在出现异常的情况下，动态资源能得到释放。unique_ptr指针本身的生命周期：从unique_ptr指针创建时开始，直到离开作用域。离开作用域时，若其指向对象，则将其所指对象销毁(默认使用delete操作符，用户可指定其他操作)。unique_ptr指针与其所指对象的关系：在智能指针生命周期内，可以改变智能指针所指对象，如创建智能指针时通过构造函数指定、通过reset方法重新指定、通过release方法释放所有权、通过移动语义转移所有权。</li>
-<li>智能指针类将一个计数器与类指向的对象相关联，引用计数跟踪该类有多少个对象共享同一指针。每次创建类的新对象时，初始化指针并将引用计数置为1；当对象作为另一对象的副本而创建时，拷贝构造函数拷贝指针并增加与之相应的引用计数；对一个对象进行赋值时，赋值操作符减少左操作数所指对象的引用计数（如果引用计数为减至0，则删除对象），并增加右操作数所指对象的引用计数；调用析构函数时，构造函数减少引用计数（如果引用计数减至0，则删除基础对象）。</li>
-<li>weak_ptr 是一种不控制对象生命周期的智能指针, 它指向一个 shared_ptr 管理的对象. 进行该对象的内存管理的是那个强引用的 shared_ptr. weak_ptr只是提供了对管理对象的一个访问手段。weak_ptr 设计的目的是为配合 shared_ptr 而引入的一种智能指针来协助 shared_ptr 工作, 它只可以从一个 shared_ptr 或另一个 weak_ptr 对象构造, 它的构造和析构不会引起引用记数的增加或减少.</li>
-</ol>
-<h2 id="7、说说你了解的auto-ptr作用"><a href="#7、说说你了解的auto-ptr作用" class="headerlink" title="7、说说你了解的auto_ptr作用"></a>7、说说你了解的auto_ptr作用</h2><ol>
-<li>auto_ptr的出现，主要是为了解决“有异常抛出时发生内存泄漏”的问题；抛出异常，将导致指针p所指向的空间得不到释放而导致内存泄漏；</li>
-<li>auto_ptr构造时取得某个对象的控制权，在析构时释放该对象。我们实际上是创建一个auto_ptr<Type>类型的局部对象，该局部对象析构时，会将自身所拥有的指针空间释放，所以不会有内存泄漏；</li>
-<li>auto_ptr的构造函数是explicit，阻止了一般指针隐式转换为 auto_ptr的构造，所以不能直接将一般类型的指针赋值给auto_ptr类型的对象，必须用auto_ptr的构造函数创建对象；</li>
-<li>由于auto_ptr对象析构时会删除它所拥有的指针，所以使用时避免多个auto_ptr对象管理同一个指针；</li>
-<li>Auto_ptr内部实现，析构函数中删除对象用的是delete而不是delete[]，所以auto_ptr不能管理数组；</li>
-<li>auto_ptr支持所拥有的指针类型之间的隐式类型转换。</li>
-<li>可以通过*和-&gt;运算符对auto_ptr所有用的指针进行提领操作；</li>
-<li>T* get(),获得auto_ptr所拥有的指针；T* release()，释放auto_ptr的所有权，并将所有用的指针返回。</li>
-</ol>
-<h2 id="8、智能指针的循环引用"><a href="#8、智能指针的循环引用" class="headerlink" title="8、智能指针的循环引用"></a>8、智能指针的循环引用</h2><p>循环引用是指使用多个智能指针share_ptr时，出现了指针之间相互指向，从而形成环的情况，有点类似于死锁的情况，这种情况下，智能指针往往不能正常调用对象的析构函数，从而造成内存泄漏。举个例子：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Node</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="built_in">Node</span>(<span class="type">const</span> T&amp; value)</span><br><span class="line">		:_pPre(<span class="literal">NULL</span>)</span><br><span class="line">		, _pNext(<span class="literal">NULL</span>)</span><br><span class="line">		, _value(value)</span><br><span class="line">	&#123;</span><br><span class="line">		cout &lt;&lt; <span class="string">&quot;Node()&quot;</span> &lt;&lt; endl;</span><br><span class="line">	&#125;</span><br><span class="line">	~<span class="built_in">Node</span>()</span><br><span class="line">	&#123;</span><br><span class="line">		cout &lt;&lt; <span class="string">&quot;~Node()&quot;</span> &lt;&lt; endl;</span><br><span class="line">		cout &lt;&lt; <span class="string">&quot;this:&quot;</span> &lt;&lt; <span class="keyword">this</span> &lt;&lt; endl;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	shared_ptr&lt;Node&lt;T&gt;&gt; _pPre;</span><br><span class="line">	shared_ptr&lt;Node&lt;T&gt;&gt; _pNext;</span><br><span class="line">	T _value;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">Funtest</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	shared_ptr&lt;Node&lt;<span class="type">int</span>&gt;&gt; <span class="built_in">sp1</span>(<span class="keyword">new</span> <span class="built_in">Node</span>&lt;<span class="type">int</span>&gt;(<span class="number">1</span>));</span><br><span class="line">	shared_ptr&lt;Node&lt;<span class="type">int</span>&gt;&gt; <span class="built_in">sp2</span>(<span class="keyword">new</span> <span class="built_in">Node</span>&lt;<span class="type">int</span>&gt;(<span class="number">2</span>));</span><br><span class="line"></span><br><span class="line">	cout &lt;&lt; <span class="string">&quot;sp1.use_count:&quot;</span> &lt;&lt; sp1.<span class="built_in">use_count</span>() &lt;&lt; endl;</span><br><span class="line">	cout &lt;&lt; <span class="string">&quot;sp2.use_count:&quot;</span> &lt;&lt; sp2.<span class="built_in">use_count</span>() &lt;&lt; endl;</span><br><span class="line"></span><br><span class="line">	sp1-&gt;_pNext = sp2; <span class="comment">//sp2的引用+1</span></span><br><span class="line">	sp2-&gt;_pPre = sp1; <span class="comment">//sp1的引用+1</span></span><br><span class="line"></span><br><span class="line">	cout &lt;&lt; <span class="string">&quot;sp1.use_count:&quot;</span> &lt;&lt; sp1.<span class="built_in">use_count</span>() &lt;&lt; endl;</span><br><span class="line">	cout &lt;&lt; <span class="string">&quot;sp2.use_count:&quot;</span> &lt;&lt; sp2.<span class="built_in">use_count</span>() &lt;&lt; endl;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">Funtest</span>();</span><br><span class="line">	<span class="built_in">system</span>(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//输出结果</span></span><br><span class="line"><span class="comment">//Node()</span></span><br><span class="line"><span class="comment">//Node()</span></span><br><span class="line"><span class="comment">//sp1.use_count:1</span></span><br><span class="line"><span class="comment">//sp2.use_count:1</span></span><br><span class="line"><span class="comment">//sp1.use_count:2</span></span><br><span class="line"><span class="comment">//sp2.use_count:2</span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
-
-<p>从上面shared_ptr的实现中我们知道了只有当引用计数减减之后等于0，析构时才会释放对象，而上述情况造成了一个僵局，那就是析构对象时先析构sp2,可是由于sp2的空间sp1还在使用中，所以sp2.use_count减减之后为1，不释放，sp1也是相同的道理，由于sp1的空间sp2还在使用中，所以sp1.use_count减减之后为1，也不释放。sp1等着sp2先释放，sp2等着sp1先释放,二者互不相让，导致最终都没能释放，内存泄漏。</p>
-<p>在实际编程过程中，应该尽量避免出现智能指针之前相互指向的情况，如果不可避免，可以使用使用弱指针——weak_ptr，它不增加引用计数，只要出了作用域就会自动析构。</p>
-<h2 id="9、手写实现智能指针类需要实现哪些函数？"><a href="#9、手写实现智能指针类需要实现哪些函数？" class="headerlink" title="9、手写实现智能指针类需要实现哪些函数？"></a>9、手写实现智能指针类需要实现哪些函数？</h2><ol>
-<li><p>智能指针是一个数据类型，一般用模板实现，模拟指针行为的同时还提供自动垃圾回收机制。它会自动记录SmartPointer&lt;T*&gt;对象的引用计数，一旦T类型对象的引用计数为0，就释放该对象。</p>
-<p>除了指针对象外，我们还需要一个引用计数的指针设定对象的值，并将引用计数计为1，需要一个构造函数。新增对象还需要一个构造函数，析构函数负责引用计数减少和释放内存。</p>
-<p>通过覆写赋值运算符，才能将一个旧的智能指针赋值给另一个指针，同时旧的引用计数减1，新的引用计数加1</p>
-</li>
-<li><p>一个构造函数、拷贝构造函数、复制构造函数、析构函数、移动函数；</p>
-</li>
-</ol>
-<h2 id="10、智能指针出现循环引用怎么解决？"><a href="#10、智能指针出现循环引用怎么解决？" class="headerlink" title="10、智能指针出现循环引用怎么解决？"></a>10、智能指针出现循环引用怎么解决？</h2><p>弱指针用于专门解决shared_ptr循环引用的问题，weak_ptr不会修改引用计数，即其存在与否并不影响对象的引用计数器。循环引用就是：两个对象互相使用一个shared_ptr成员变量指向对方。弱引用并不对对象的内存进行管理，在功能上类似于普通指针，然而一个比较大的区别是，弱引用能检测到所管理的对象是否已经被释放，从而避免访问非法内存。</p>
-]]></content>
-      <categories>
-        <category>八股</category>
-      </categories>
-      <tags>
-        <tag>C++</tag>
-        <tag>C++11</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>面经-C++其余问题</title>
     <url>/2023/07/15/C++%E5%85%B6%E4%BD%99%E9%97%AE%E9%A2%98/</url>
     <content><![CDATA[<h1 id="C-其余问题"><a href="#C-其余问题" class="headerlink" title="C++其余问题"></a>C++其余问题</h1><h2 id="1、C-的多态如何实现"><a href="#1、C-的多态如何实现" class="headerlink" title="1、C++的多态如何实现"></a>1、C++的多态如何实现</h2><p>C++的多态性，<strong>一言以蔽之</strong>就是：</p>
@@ -1019,151 +1164,6 @@
       </categories>
       <tags>
         <tag>C++</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>面经-C++内存管理</title>
-    <url>/2023/07/15/C++%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/</url>
-    <content><![CDATA[<h1 id="C-内存管理"><a href="#C-内存管理" class="headerlink" title="C++内存管理"></a>C++内存管理</h1><h2 id="1、类的对象存储空间？"><a href="#1、类的对象存储空间？" class="headerlink" title="1、类的对象存储空间？"></a>1、类的对象存储空间？</h2><ul>
-<li>非静态成员的数据类型大小之和。</li>
-<li>编译器加入的额外成员变量（如指向虚函数表的指针）。</li>
-<li>为了边缘对齐优化加入的padding。</li>
-</ul>
-<p>空类(无非静态数据成员)的对象的size为1, 当作为基类时, size为0.</p>
-<h2 id="2、简要说明C-的内存分区"><a href="#2、简要说明C-的内存分区" class="headerlink" title="2、简要说明C++的内存分区"></a>2、简要说明C++的内存分区</h2><p>C++中的内存分区，分别是堆、栈、自由存储区、全局&#x2F;静态存储区、常量存储区和代码区。如下图所示</p>
-<p><img src="http://oss.interviewguide.cn/img/202205220021689.png" alt="img"></p>
-<p><strong>栈</strong>：在执行函数时，函数内局部变量的存储单元都可以在栈上创建，函数执行结束时这些存储单元自动被释放。栈内存分配运算内置于处理器的指令集中，效率很高，但是分配的内存容量有限</p>
-<p><strong>堆</strong>：就是那些由 <code>new</code>分配的内存块，他们的释放编译器不去管，由我们的应用程序去控制，一般一个<code>new</code>就要对应一个 <code>delete</code>。如果程序员没有释放掉，那么在程序结束后，操作系统会自动回收</p>
-<p><strong>自由存储区</strong>：如果说堆是操作系统维护的一块内存，那么自由存储区就是C++中通过new和delete动态分配和释放对象的抽象概念。需要注意的是，自由存储区和堆比较像，但不等价。</p>
-<p><strong>全局&#x2F;静态存储区</strong>：全局变量和静态变量被分配到同一块内存中，在以前的C语言中，全局变量和静态变量又分为初始化的和未初始化的，在C++里面没有这个区分了，它们共同占用同一块内存区，在该区定义的变量若没有初始化，则会被自动初始化，例如int型变量自动初始为0</p>
-<p><strong>常量存储区</strong>：这是一块比较特殊的存储区，这里面存放的是常量，不允许修改</p>
-<p><strong>代码区</strong>：存放函数体的二进制代码</p>
-<h2 id="3、什么是内存池，如何实现"><a href="#3、什么是内存池，如何实现" class="headerlink" title="3、什么是内存池，如何实现"></a>3、什么是内存池，如何实现</h2><p>内存池（Memory Pool） 是一种<strong>内存分配</strong>方式。通常我们习惯直接使用new、malloc 等申请内存，这样做的缺点在于：由于所申请内存块的大小不定，当频繁使用时会造成大量的内存碎片并进而降低性能。内存池则是在真正使用内存之前，先申请分配一定数量的、大小相等(一般情况下)的内存块留作备用。当有新的内存需求时，就从内存池中分出一部分内存块， 若内存块不够再继续申请新的内存。这样做的一个显著优点是尽量避免了内存碎片，使得内存分配效率得到提升。</p>
-<p>这里<strong>简单描述一下《STL源码剖析》中的内存池实现机制</strong>：</p>
-<p><strong>allocate 包装 malloc，deallocate包装free</strong></p>
-<p>一般是一次20*2个的申请，先用一半，留着一半，为什么也没个说法，侯捷在STL那边书里说好像是C++委员会成员认为20是个比较好的数字，既不大也不小。</p>
-<ol>
-<li>首先客户端会调用malloc()配置一定数量的区块（固定大小的内存块，通常为8的倍数），假设40个32bytes的区块，其中20个区块（一半）给程序实际使用，1个区块交出，另外19个处于维护状态。剩余20个（一半）留给内存池，此时一共有（20*32byte）</li>
-<li>客户端之后有有内存需求，想申请（20<em>64bytes）的空间，这时内存池只有（20</em>32bytes），就先将（10*64bytes)个区块返回，1个区块交出，另外9个处于维护状态，此时内存池空空如也.</li>
-<li>接下来如果客户端还有内存需求，就必须再调用malloc()配置空间，此时新申请的区块数量会增加一个随着配置次数越来越大的附加量，同样一半提供程序使用，另一半留给内存池。申请内存的时候用永远是先看内存池有无剩余，有的话就用上，然后挂在0-15号某一条链表上，要不然就重新申请。</li>
-<li>如果整个堆的空间都不够了，就会在原先已经分配区块中寻找能满足当前需求的区块数量，能满足就返回，不能满足就向客户端报bad_alloc异常</li>
-</ol>
-<p>allocator就是用来分配内存的，最重要的两个函数是allocate和deallocate，就是用来申请内存和回收内存的，外部（一般指容器）调用的时候只需要知道这些就够了。</p>
-<p>内部实现，目前的所有编译器都是直接调用的::operator new()和::operator delete()，说白了就是和直接使用new运算符的效果是一样的，所以老师说它们都没做任何特殊处理。</p>
-<p><strong>其实最开始GC2.9之前</strong></p>
-<p>new和 operator new 的区别：new 是个运算符，编辑器会调用 operator new(0)</p>
-<p>operator new()里面有调用malloc的操作，那同样的 operator delete()里面有调用的free的操作</p>
-<p>GC2.9下的alloc函数的一个比较好的分配器的实现规则如下：</p>
-<p>维护一条0-15号的一共16条链表，其中 0 号表示8 bytes ，1 号表示 16 bytes，2 号表示 24 bytes。。。。而15 号表示 16* 8 &#x3D; 128 bytes。</p>
-<p>如果在申请内存时，申请内存的大小并不是8的倍数（比如2、4、7、9、18这样不是8的倍数），那就找刚好能满足内存大小的链表。比如想申请 12 个大小，那就按照 16 来处理，也就是找 1 号链表了；想申请 20 ，距离它最近的就是 24 了，那就找 2 号链表。</p>
-<p>只许比所要申请的内容大，不许小！</p>
-<p><strong>但是现在GC4.9及其之后</strong> 也还有 alloc 函数，只不过已经变成_pool_alloc这个名字了，名字已经改了，也不再是默认的了。</p>
-<p>你需要自己手动去指定它可以自己指定，比如</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">vector&lt;string,__gnu_cxx::pool_alloc&lt;string&gt;&gt; vec;</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
-
-<p>这样来使用它，等于兜兜转转又回到以前那种对malloc和free的包装形式了。</p>
-<h2 id="4、可以说一下你了解的C-得内存管理吗？"><a href="#4、可以说一下你了解的C-得内存管理吗？" class="headerlink" title="4、可以说一下你了解的C++得内存管理吗？"></a>4、可以说一下你了解的C++得内存管理吗？</h2><p>在C++中，内存分成5个区，他们分别是堆、栈、全局&#x2F;静态存储区和常量存储区和代码区。</p>
-<ul>
-<li>栈，在执行函数时，函数内局部变量的存储单元都可以在栈上创建，函数执行结束时这些存储单元自动被释放。栈内存分配运算内置于处理器的指令集中，效率很高，但是分配的内存容量有限。</li>
-<li>堆，就是那些由new分配的内存块，他们的释放编译器不去管，由我们的应用程序去控制，一般一个new就要对应一个delete。如果程序员没有释放掉，那么在程序结束后，操作系统会自动回收。</li>
-<li>全局&#x2F;静态存储区，内存在程序编译的时候就已经分配好，这块内存在程序的整个运行期间都存在。它主要存放静态数据（局部static变量，全局static变量）、全局变量和常量。</li>
-<li>常量存储区，这是一块比较特殊的存储区，他们里面存放的是常量字符串，不允许修改。</li>
-<li>代码区，存放程序的二进制代码</li>
-</ul>
-<h2 id="5、C-中类的数据成员和成员函数内存分布情况"><a href="#5、C-中类的数据成员和成员函数内存分布情况" class="headerlink" title="5、C++中类的数据成员和成员函数内存分布情况"></a>5、C++中类的数据成员和成员函数内存分布情况</h2><p>C++类是由结构体发展得来的，所以他们的成员变量（C语言的结构体只有成员变量）的内存分配机制是一样的。下面我们以类来说明问题，如果类的问题通了，结构体也也就没问题啦。 类分为成员变量和成员函数，我们先来讨论成员变量。</p>
-<p>一个类对象的地址就是类所包含的这一片内存空间的首地址，这个首地址也就对应具体某一个成员变量的地址。（在定义类对象的同时这些成员变量也就被定义了），举个例子：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Person</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">Person</span>()</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">this</span>-&gt;age = <span class="number">23</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">printAge</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        cout &lt;&lt; <span class="keyword">this</span>-&gt;age &lt;&lt;endl;</span><br><span class="line">    &#125;</span><br><span class="line">    ~<span class="built_in">Person</span>()&#123;&#125;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="type">int</span> age;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Person p;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;对象地址：&quot;</span>&lt;&lt; &amp;p &lt;&lt;endl;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;age地址：&quot;</span>&lt;&lt; &amp;(p.age) &lt;&lt;endl;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;对象大小：&quot;</span>&lt;&lt; <span class="built_in">sizeof</span>(p) &lt;&lt;endl;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;age大小：&quot;</span>&lt;&lt; <span class="built_in">sizeof</span>(p.age) &lt;&lt;endl;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//输出结果</span></span><br><span class="line"><span class="comment">//对象地址：0x7fffec0f15a8</span></span><br><span class="line"><span class="comment">//age地址：0x7fffec0f15a8</span></span><br><span class="line"><span class="comment">//对象大小：4</span></span><br><span class="line"><span class="comment">//age大小：4</span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
-
-<p>从代码运行结果来看，对象的大小和对象中数据成员的大小是一致的，也就是说，成员函数不占用对象的内存。这是因为所有的函数都是存放在代码区的，不管是全局函数，还是成员函数。</p>
-<p>要是成员函数占用类的对象空间，那么将是多么可怕的事情：定义一次类对象就有成员函数占用一段空间。</p>
-<p>我们再来补充一下静态成员函数的存放问题：<strong>静态成员函数与一般成员函数的唯一区别就是没有this指针</strong>，因此不能访问非静态数据成员。</p>
-<p>就像我前面提到的，<strong>所有函数都存放在代码区，静态函数也不例外。所有有人一看到 static 这个单词就主观的认为是存放在全局数据区，那是不对的。</strong></p>
-<h2 id="6、关于this指针你知道什么？全说出来"><a href="#6、关于this指针你知道什么？全说出来" class="headerlink" title="6、关于this指针你知道什么？全说出来"></a>6、关于this指针你知道什么？全说出来</h2><ul>
-<li>this指针是类的指针，指向对象的首地址。</li>
-<li>this指针只能在成员函数中使用，在全局函数、静态成员函数中都不能用this。</li>
-<li>this指针只有在成员函数中才有定义，且存储位置会因编译器不同有不同存储位置。</li>
-</ul>
-<p><strong>this指针的用处</strong></p>
-<p>一个对象的this指针并不是对象本身的一部分，不会影响 sizeof(对象) 的结果。this作用域是在类内部，当在类的<strong>非静态成员函数</strong>中访问类的<strong>非静态成员</strong>的时候（全局函数，静态函数中不能使用this指针），编译器会自动将对象本身的地址作为一个隐含参数传递给函数。也就是说，即使你没有写上this指针，编译器在编译的时候也是加上this的，它作为非静态成员函数的隐含形参，对各成员的访问均通过this进行</p>
-<p><strong>this指针的使用</strong></p>
-<p>一种情况就是，在类的非静态成员函数中返回类对象本身的时候，直接使用 return *this；</p>
-<p>另外一种情况是当形参数与成员变量名相同时用于区分，如this-&gt;n &#x3D; n （不能写成n &#x3D; n）</p>
-<p><strong>类的this指针有以下特点</strong></p>
-<p>(1）<strong>this</strong>只能在成员函数中使用，全局函数、静态函数都不能使用this。实际上，<strong>传入参数为当前对象地址，成员函数第一个参数为</strong>为<strong>T * const this</strong></p>
-<p>如：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">class A&#123;public:	int func(int p)&#123;&#125;&#125;;</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
-
-<p>其中，<strong>func</strong>的原型在编译器看来应该是：</p>
-<p><strong>int func(A * const this,int p);</strong></p>
-<p>（2）由此可见，<strong>this</strong>在成员函数的开始前构造，在成员函数的结束后清除。这个生命周期同任何一个函数的参数是一样的，没有任何区别。当调用一个类的成员函数时，编译器将类的指针作为函数的this参数传递进去。如：</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">A a;a.func(10);//此处，编译器将会编译成：A::func(&amp;a,10);</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
-
-<p>看起来和静态函数没差别，对吗？不过，区别还是有的。编译器通常会对this指针做一些优化，因此，this指针的传递效率比较高，例如VC通常是通过ecx（计数寄存器）传递this参数的。</p>
-<h2 id="7、几个this指针的易混问题"><a href="#7、几个this指针的易混问题" class="headerlink" title="7、几个this指针的易混问题"></a>7、几个this指针的易混问题</h2><h3 id="A-this指针是什么时候创建的？"><a href="#A-this指针是什么时候创建的？" class="headerlink" title="A. this指针是什么时候创建的？"></a>A. this指针是什么时候创建的？</h3><p>this在成员函数的开始执行前构造，在成员的执行结束后清除。</p>
-<p>但是如果class或者struct里面没有方法的话，它们是没有构造函数的，只能当做C的struct使用。采用TYPE xx的方式定义的话，在栈里分配内存，这时候this指针的值就是这块内存的地址。采用new的方式创建对象的话，在堆里分配内存，new操作符通过eax（累加寄存器）返回分配的地址，然后设置给指针变量。之后去调用构造函数（如果有构造函数的话），这时将这个内存块的地址传给ecx，之后构造函数里面怎么处理请看上面的回答</p>
-<h3 id="B-this指针存放在何处？堆、栈、全局变量，还是其他？"><a href="#B-this指针存放在何处？堆、栈、全局变量，还是其他？" class="headerlink" title="B. this指针存放在何处？堆、栈、全局变量，还是其他？"></a>B. this指针存放在何处？堆、栈、全局变量，还是其他？</h3><p>this指针会因编译器不同而有不同的放置位置。可能是栈，也可能是寄存器，甚至全局变量。在汇编级别里面，一个值只会以3种形式出现：立即数、寄存器值和内存变量值。不是存放在寄存器就是存放在内存中，它们并不是和高级语言变量对应的。</p>
-<h3 id="C-this指针是如何传递类中的函数的？绑定？还是在函数参数的首参数就是this指针？那么，this指针又是如何找到“类实例后函数的”？"><a href="#C-this指针是如何传递类中的函数的？绑定？还是在函数参数的首参数就是this指针？那么，this指针又是如何找到“类实例后函数的”？" class="headerlink" title="C. this指针是如何传递类中的函数的？绑定？还是在函数参数的首参数就是this指针？那么，this指针又是如何找到“类实例后函数的”？"></a>C. this指针是如何传递类中的函数的？绑定？还是在函数参数的首参数就是this指针？那么，this指针又是如何找到“类实例后函数的”？</h3><p>大多数编译器通过ecx（寄数寄存器）寄存器传递this指针。事实上，这也是一个潜规则。一般来说，不同编译器都会遵从一致的传参规则，否则不同编译器产生的obj就无法匹配了。</p>
-<p>在call之前，编译器会把对应的对象地址放到eax中。this是通过函数参数的首参来传递的。this指针在调用之前生成，至于“类实例后函数”，没有这个说法。类在实例化时，只分配类中的变量空间，并没有为函数分配空间。自从类的函数定义完成后，它就在那儿，不会跑的</p>
-<h3 id="D-this指针是如何访问类中的变量的？"><a href="#D-this指针是如何访问类中的变量的？" class="headerlink" title="D. this指针是如何访问类中的变量的？"></a>D. this指针是如何访问类中的变量的？</h3><p>如果不是类，而是结构体的话，那么，如何通过结构指针来访问结构中的变量呢？如果你明白这一点的话，就很容易理解这个问题了。</p>
-<p>在C++中，类和结构是只有一个区别的：类的成员默认是private，而结构是public。</p>
-<p>this是类的指针，如果换成结构体，那this就是结构的指针了。</p>
-<h3 id="E-我们只有获得一个对象后，才能通过对象使用this指针。如果我们知道一个对象this指针的位置，可以直接使用吗？"><a href="#E-我们只有获得一个对象后，才能通过对象使用this指针。如果我们知道一个对象this指针的位置，可以直接使用吗？" class="headerlink" title="E.我们只有获得一个对象后，才能通过对象使用this指针。如果我们知道一个对象this指针的位置，可以直接使用吗？"></a>E.我们只有获得一个对象后，才能通过对象使用this指针。如果我们知道一个对象this指针的位置，可以直接使用吗？</h3><p>this指针只有在成员函数中才有定义。因此，你获得一个对象后，也不能通过对象使用this指针。所以，我们无法知道一个对象的this指针的位置（只有在成员函数里才有this指针的位置）。当然，在成员函数里，你是可以知道this指针的位置的（可以通过&amp;this获得），也可以直接使用它。</p>
-<h3 id="F-每个类编译后，是否创建一个类中函数表保存函数指针，以便用来调用函数？"><a href="#F-每个类编译后，是否创建一个类中函数表保存函数指针，以便用来调用函数？" class="headerlink" title="F.每个类编译后，是否创建一个类中函数表保存函数指针，以便用来调用函数？"></a>F.每个类编译后，是否创建一个类中函数表保存函数指针，以便用来调用函数？</h3><p>普通的类函数（不论是成员函数，还是静态函数）都不会创建一个函数表来保存函数指针。只有虚函数才会被放到函数表中。但是，即使是虚函数，如果编译期就能明确知道调用的是哪个函数，编译器就不会通过函数表中的指针来间接调用，而是会直接调用该函数。正是由于this指针的存在，用来指向不同的对象，从而确保不同对象之间调用相同的函数可以互不干扰。</p>
-<h2 id="8、-内存泄漏的后果？如何监测？解决方法？"><a href="#8、-内存泄漏的后果？如何监测？解决方法？" class="headerlink" title="8、 内存泄漏的后果？如何监测？解决方法？"></a>8、 内存泄漏的后果？如何监测？解决方法？</h2><p><strong>1) 内存泄漏</strong></p>
-<p>内存泄漏是指由于疏忽或错误造成了程序未能释放掉不再使用的内存的情况。内存泄漏并非指内存在物理上消失，而是应用程序分配某段内存后，由于设计错误，失去了对该段内存的控制；</p>
-<p><strong>2) 后果</strong></p>
-<p>只发生一次小的内存泄漏可能不被注意，但泄漏大量内存的程序将会出现各种证照：性能下降到内存逐渐用完，导致另一个程序失败；</p>
-<p><strong>3) 如何排除</strong></p>
-<p>使用工具软件BoundsChecker，BoundsChecker是一个运行时错误检测工具，它主要定位程序运行时期发生的各种错误；</p>
-<p>调试运行DEBUG版程序，运用以下技术：CRT(C run-time libraries)、运行时函数调用堆栈、内存泄漏时提示的内存分配序号(集成开发环境OUTPUT窗口)，综合分析内存泄漏的原因，排除内存泄漏。</p>
-<p><strong>4) 解决方法</strong></p>
-<p>智能指针。</p>
-<p><strong>5) 检查、定位内存泄漏</strong></p>
-<p>检查方法：在main函数最后面一行，加上一句_CrtDumpMemoryLeaks()。调试程序，自然关闭程序让其退出，查看输出：</p>
-<p>输出这样的格式{453}normal block at 0x02432CA8,868 bytes long</p>
-<p>被{}包围的453就是我们需要的内存泄漏定位值，868 bytes long就是说这个地方有868比特内存没有释放。</p>
-<p>定位代码位置</p>
-<p>在main函数第一行加上_CrtSetBreakAlloc(453);意思就是在申请453这块内存的位置中断。然后调试程序，程序中断了，查看调用堆栈。加上头文件#include &lt;crtdbg.h&gt;</p>
-<h2 id="9、在成员函数中调用delete-this会出现什么问题？对象还可以使用吗？"><a href="#9、在成员函数中调用delete-this会出现什么问题？对象还可以使用吗？" class="headerlink" title="9、在成员函数中调用delete this会出现什么问题？对象还可以使用吗？"></a>9、在成员函数中调用delete this会出现什么问题？对象还可以使用吗？</h2><p>在类对象的内存空间中，只有数据成员和虚函数表指针，并不包含代码内容，类的成员函数单独放在代码段中。在调用成员函数时，隐含传递一个this指针，让成员函数知道当前是哪个对象在调用它。当调用delete this时，类对象的内存空间被释放。在delete this之后进行的其他任何函数调用，只要不涉及到this指针的内容，都能够正常运行。一旦涉及到this指针，如操作数据成员，调用虚函数等，就会出现不可预期的问题。</p>
-<h2 id="10、为什么是不可预期的问题？"><a href="#10、为什么是不可预期的问题？" class="headerlink" title="10、为什么是不可预期的问题？"></a>10、为什么是不可预期的问题？</h2><p>delete this之后不是释放了类对象的内存空间了么，那么这段内存应该已经还给系统，不再属于这个进程。照这个逻辑来看，应该发生指针错误，无访问权限之类的令系统崩溃的问题才对啊？这个问题牵涉到操作系统的内存管理策略。delete this释放了类对象的内存空间，但是内存空间却并不是马上被回收到系统中，可能是缓冲或者其他什么原因，导致这段内存空间暂时并没有被系统收回。此时这段内存是可以访问的，你可以加上100，加上200，但是其中的值却是不确定的。当你获取数据成员，可能得到的是一串很长的未初始化的随机数；访问虚函数表，指针无效的可能性非常高，造成系统崩溃。</p>
-<h2 id="11、-如果在类的析构函数中调用delete-this，会发生什么？"><a href="#11、-如果在类的析构函数中调用delete-this，会发生什么？" class="headerlink" title="11、 如果在类的析构函数中调用delete this，会发生什么？"></a>11、 如果在类的析构函数中调用delete this，会发生什么？</h2><p>会导致堆栈溢出。原因很简单，delete的本质是“为将被释放的内存调用一个或多个析构函数，然后，释放内存”。显然，delete this会去调用本对象的析构函数，而析构函数中又调用delete this，形成无限递归，造成堆栈溢出，系统崩溃。</p>
-<h2 id="12、你知道空类的大小是多少吗？"><a href="#12、你知道空类的大小是多少吗？" class="headerlink" title="12、你知道空类的大小是多少吗？"></a>12、你知道空类的大小是多少吗？</h2><ol>
-<li>C++空类的大小不为0，不同编译器设置不一样，vs设置为1；</li>
-<li>C++标准指出，不允许一个对象（当然包括类对象）的大小为0，不同的对象不能具有相同的地址；</li>
-<li>带有虚函数的C++类大小不为1，因为每一个对象会有一个vptr指向虚函数表，具体大小根据指针大小确定；</li>
-<li>C++中要求对于类的每个实例都必须有独一无二的地址,那么编译器自动为空类分配一个字节大小，这样便保证了每个实例均有独一无二的内存地址。</li>
-</ol>
-<h2 id="13、请说一下以下几种情况下，下面几个类的大小各是多少？"><a href="#13、请说一下以下几种情况下，下面几个类的大小各是多少？" class="headerlink" title="13、请说一下以下几种情况下，下面几个类的大小各是多少？"></a>13、请说一下以下几种情况下，下面几个类的大小各是多少？</h2><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> &#123;&#125;;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">  cout&lt;&lt;<span class="built_in">sizeof</span>(A)&lt;&lt;endl;<span class="comment">// 输出 1;</span></span><br><span class="line">  A a; </span><br><span class="line">  cout&lt;&lt;<span class="built_in">sizeof</span>(a)&lt;&lt;endl;<span class="comment">// 输出 1;</span></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
-
-<p>空类的大小是1， 在C++中空类会占一个字节，这是为了让对象的实例能够相互区别。具体来说，空类同样可以被实例化，并且每个实例在内存中都有独一无二的地址，因此，编译器会给空类隐含加上一个字节，这样空类实例化之后就会拥有独一无二的内存地址。当该空白类作为基类时，该类的大小就优化为0了，子类的大小就是子类本身的大小。这就是所谓的空白基类最优化。</p>
-<p>空类的实例大小就是类的大小，所以sizeof(a)&#x3D;1字节,如果a是指针，则sizeof(a)就是指针的大小，即4字节。</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> &#123; <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">Fun</span><span class="params">()</span></span>&#123;&#125; &#125;;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">  cout&lt;&lt;<span class="built_in">sizeof</span>(A)&lt;&lt;endl;<span class="comment">// 输出 4(32位机器)/8(64位机器);</span></span><br><span class="line">  A a; </span><br><span class="line">  cout&lt;&lt;<span class="built_in">sizeof</span>(a)&lt;&lt;endl;<span class="comment">// 输出 4(32位机器)/8(64位机器);</span></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
-
-<p>因为有虚函数的类对象中都有一个虚函数表指针 __vptr，其大小是4字节</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> &#123; <span class="type">static</span> <span class="type">int</span> a; &#125;;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">  cout&lt;&lt;<span class="built_in">sizeof</span>(A)&lt;&lt;endl;<span class="comment">// 输出 1;</span></span><br><span class="line">  A a; </span><br><span class="line">  cout&lt;&lt;<span class="built_in">sizeof</span>(a)&lt;&lt;endl;<span class="comment">// 输出 1;</span></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
-
-<p>静态成员存放在静态存储区，不占用类的大小, 普通函数也不占用类大小</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> &#123; <span class="type">int</span> a; &#125;;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">  cout&lt;&lt;<span class="built_in">sizeof</span>(A)&lt;&lt;endl;<span class="comment">// 输出 4;</span></span><br><span class="line">  A a; </span><br><span class="line">  cout&lt;&lt;<span class="built_in">sizeof</span>(a)&lt;&lt;endl;<span class="comment">// 输出 4;</span></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
-
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> &#123; <span class="type">static</span> <span class="type">int</span> a; <span class="type">int</span> b; &#125;;;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">  cout&lt;&lt;<span class="built_in">sizeof</span>(A)&lt;&lt;endl;<span class="comment">// 输出 4;</span></span><br><span class="line">  A a; </span><br><span class="line">  cout&lt;&lt;<span class="built_in">sizeof</span>(a)&lt;&lt;endl;<span class="comment">// 输出 4;</span></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
-
-<p>静态成员a不占用类的大小，所以类的大小就是b变量的大小 即4个字节</p>
-<h2 id="14、this指针调用成员变量时，堆栈会发生什么变化？"><a href="#14、this指针调用成员变量时，堆栈会发生什么变化？" class="headerlink" title="14、this指针调用成员变量时，堆栈会发生什么变化？"></a>14、this指针调用成员变量时，堆栈会发生什么变化？</h2><p>当在类的非静态成员函数访问类的非静态成员时，编译器会自动将对象的地址传给作为隐含参数传递给函数，这个隐含参数就是this指针。</p>
-<p>即使你并没有写this指针，编译器在链接时也会加上this的，对各成员的访问都是通过this的。</p>
-<p>例如你建立了类的多个对象时，在调用类的成员函数时，你并不知道具体是哪个对象在调用，此时你可以通过查看this指针来查看具体是哪个对象在调用。This指针首先入栈，然后成员函数的参数从右向左进行入栈，最后函数返回地址入栈。</p>
-<h2 id="15、类对象的大小受哪些因素影响？"><a href="#15、类对象的大小受哪些因素影响？" class="headerlink" title="15、类对象的大小受哪些因素影响？"></a>15、类对象的大小受哪些因素影响？</h2><ol>
-<li>类的非静态成员变量大小，静态成员不占据类的空间，成员函数也不占据类的空间大小；</li>
-<li>内存对齐另外分配的空间大小，类内的数据也是需要进行内存对齐操作的；</li>
-<li>虚函数的话，会在类对象插入vptr指针，加上指针大小；</li>
-<li>当该类是某类的派生类，那么派生类继承的基类部分的数据成员也会存在在派生类中的空间中，也会对派生类进行扩展。</li>
-</ol>
-]]></content>
-      <categories>
-        <category>八股</category>
-      </categories>
-      <tags>
-        <tag>C++</tag>
-        <tag>内存管理</tag>
       </tags>
   </entry>
   <entry>
